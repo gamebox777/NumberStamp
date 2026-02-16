@@ -2,61 +2,108 @@ import React from 'react';
 import { Arrow, Circle } from 'react-konva';
 
 const ArrowItem = ({ item, stampX, stampY, isSelected, onHandleDrag }) => {
-  if (!item.arrowEndPoint || (item.arrowEndPoint.x === 0 && item.arrowEndPoint.y === 0)) {
-    return null;
+  // 初期状態かどうか判定 (arrowEndPointがない、または(0,0)の場合)
+  const isInitialState = !item.arrowEndPoint || (item.arrowEndPoint.x === 0 && item.arrowEndPoint.y === 0);
+
+  // 形状パラメータの計算
+  let width, height, radius;
+  if (item.shape === 'square') {
+      const digits = String(item.number).length;
+      const widthFactor = Math.max(1.0, 0.6 + digits * 0.4);
+      width = item.radius * 2 * widthFactor;
+      height = item.radius * 2 * 0.65;
+  } else {
+      radius = item.radius;
   }
 
-  // スタンプ中心から矢印終点までのベクトル計算
-  const dx = item.arrowEndPoint.x;
-  const dy = item.arrowEndPoint.y;
-  const length = Math.sqrt(dx * dx + dy * dy);
-  
-  if (length < item.radius) {
-     return null; // スタンプに隠れる長さなら描画しない
+  // デフォルト位置の計算（右下）
+  let defaultX, defaultY;
+  if (item.shape === 'square') {
+      defaultX = width / 2 + 15;
+      defaultY = height / 2 + 15;
+  } else {
+      defaultX = radius + 15;
+      defaultY = radius + 15;
   }
 
-  // スタンプの縁から開始するためのオフセット計算
-  const offsetX = (dx / length) * item.radius;
-  const offsetY = (dy / length) * item.radius;
+  // 描画すべき矢印の終点（相対座標）
+  let dx, dy;
+  if (isInitialState) {
+      dx = defaultX;
+      dy = defaultY;
+  } else {
+      dx = item.arrowEndPoint.x;
+      dy = item.arrowEndPoint.y;
+  }
 
-  // 絶対座標に変換
-  const startX = stampX + offsetX;
-  const startY = stampY + offsetY;
-  const endX = stampX + dx;
-  const endY = stampY + dy;
+  // 絶対座標
+  const absEndX = stampX + dx;
+  const absEndY = stampY + dy;
+
+  // 矢印（ライン）の描画ロジック
+  const renderArrow = () => {
+      if (isInitialState) return null;
+
+      const length = Math.sqrt(dx * dx + dy * dy);
+      
+      // 形状に基づいて隠れる距離（開始位置）を計算
+      let startDist;
+      if (item.shape === 'square') {
+          const halfWidth = width / 2;
+          const halfHeight = height / 2;
+          
+          const scaleX = halfWidth / Math.abs(dx);
+          const scaleY = halfHeight / Math.abs(dy);
+          const scale = Math.min(scaleX, scaleY);
+          
+          startDist = length * scale;
+      } else {
+          startDist = item.radius;
+      }
+
+      if (length < startDist) {
+         return null; 
+      }
+
+      const offsetX = (dx / length) * startDist;
+      const offsetY = (dy / length) * startDist;
+
+      const absStartX = stampX + offsetX;
+      const absStartY = stampY + offsetY;
+
+      return (
+        <Arrow
+            points={[absStartX, absStartY, absEndX, absEndY]}
+            stroke={item.color}
+            fill={item.color}
+            strokeWidth={3}
+            pointerLength={10}
+            pointerWidth={10}
+            lineCap="round"
+            lineJoin="round"
+        />
+      );
+  };
 
   return (
     <>
-      <Arrow
-        points={[startX, startY, endX, endY]}
-        stroke={item.color}
-        fill={item.color}
-        strokeWidth={3}
-        pointerLength={10}
-        pointerWidth={10}
-        lineCap="round"
-        lineJoin="round"
-      />
+      {renderArrow()}
       
-      {/* 矢印操作用ハンドル (選択時かつ矢印がある場合) */}
+      {/* 矢印操作用ハンドル (選択時のみ常に表示) */}
       {isSelected && (
         <Circle
-            x={endX}
-            y={endY}
+            x={absEndX}
+            y={absEndY}
             radius={8}
             fill="cyan"
             stroke="black"
             strokeWidth={1}
             draggable
             onDragEnd={(e) => {
-                // 親のスタンプからの相対座標に戻して保存
                 const newX = e.target.x() - stampX;
                 const newY = e.target.y() - stampY;
                 onHandleDrag(newX, newY);
             }}
-             // ドラッグ中は再描画が必要だが、onDragMoveは重くなるのでEndで更新か、
-             // 本格的にはCanvasAreaでdragMoveを受け取ってState更新などが望ましい
-             // ここでは簡易的にドラッグ終了で確定とする
         />
       )}
     </>

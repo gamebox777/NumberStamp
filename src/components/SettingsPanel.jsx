@@ -1,6 +1,8 @@
-import React from 'react';
 
-const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode }) => {
+import bannerImg from '../assets/banner.svg';
+
+const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode, onDelete }) => {
+
   
   // 選択中のアイテムがあればそれの設定、なければ現在のツールの設定を表示
   const currentSettings = selectedItem ? selectedItem : settings;
@@ -18,7 +20,44 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
 
   return (
     <div className="settings-panel">
-      <h3>設定 ({isEditing ? '選択中' : '新規'})</h3>
+      <div className="banner-container" style={{ marginBottom: '15px', textAlign: 'center' }}>
+        <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block' }} />
+      </div>
+      <div style={{ 
+        padding: '10px', 
+        marginBottom: '15px', 
+        backgroundColor: '#e8f4fc', 
+        border: '1px solid #b6e0fe',
+        borderRadius: '4px',
+        textAlign: 'center',
+        fontWeight: 'bold',
+        color: '#005a9c'
+      }}>
+        現在のモード: {
+          mode === 'select' ? '選択 (Select)' :
+          mode === 'stamp' ? 'スタンプ (Stamp)' :
+          mode === 'rectangle' ? '矩形 (Rectangle)' : mode
+        }
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3>設定 ({isEditing ? '選択中' : '新規'})</h3>
+        {isEditing && (
+          <button 
+            onClick={onDelete}
+            style={{ 
+                backgroundColor: '#ff4d4d', 
+                color: 'white', 
+                border: 'none', 
+                padding: '5px 10px', 
+                borderRadius: '4px',
+                cursor: 'pointer'
+            }}
+          >
+            削除
+          </button>
+        )}
+      </div>
 
       {(mode === 'stamp' || (selectedItem && selectedItem.type === 'stamp')) && (
         <>

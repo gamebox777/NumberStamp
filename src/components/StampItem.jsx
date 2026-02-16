@@ -52,15 +52,34 @@ const StampItem = ({
       id={item.id}
       x={item.x}
       y={item.y}
+      rotation={item.rotation || 0}
+      scaleX={item.scaleX || 1}
+      scaleY={item.scaleY || 1}
       draggable={isSelected}
       onClick={onSelect}
       onTap={onSelect}
       onDragEnd={(e) => {
-        onChange({
-          ...item,
-          x: e.target.x(),
-          y: e.target.y(),
-        });
+        // グループ自身のドラッグ終了時のみ座標更新
+        // 子要素（矢印ハンドル）のドラッグがバブルしてくるのを防ぐためIDチェック
+        if (e.target.id() === item.id) {
+            onChange({
+              ...item,
+              x: e.target.x(),
+              y: e.target.y(),
+            });
+        }
+      }}
+      onTransformEnd={(e) => {
+        if (e.target.id() === item.id) {
+            onChange({
+                ...item,
+                x: e.target.x(),
+                y: e.target.y(),
+                rotation: e.target.rotation(),
+                scaleX: e.target.scaleX(),
+                scaleY: e.target.scaleY()
+            });
+        }
       }}
     >
       {/* 形状描画 */}
@@ -112,17 +131,7 @@ const StampItem = ({
         offsetY={item.shape === 'square' ? shapeProps.height / 2 : item.radius}
       />
       
-      {/* 矢印操作ハンドル (選択時のみ) */}
-      {isSelected && (
-          <Circle
-            x={0} // スタンプ中心
-            y={0} 
-            radius={6}
-            fill="cyan"
-            stroke="black"
-            strokeWidth={1}
-          />
-      )}
+
 
     </Group>
   );

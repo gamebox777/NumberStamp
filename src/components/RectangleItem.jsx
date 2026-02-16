@@ -3,19 +3,12 @@ import { Rect, Transformer } from 'react-konva';
 
 const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
   const shapeRef = React.useRef();
-  const trRef = React.useRef();
-
-  React.useEffect(() => {
-    if (isSelected && trRef.current) {
-      trRef.current.nodes([shapeRef.current]);
-      trRef.current.getLayer().batchDraw();
-    }
-  }, [isSelected]);
 
   return (
     <>
       <Rect
         ref={shapeRef}
+        id={item.id}
         x={item.x}
         y={item.y}
         width={item.width}
@@ -48,21 +41,11 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
             y: node.y(),
             width: Math.max(5, node.width() * scaleX),
             height: Math.max(5, node.height() * scaleY),
+            scaleX: 1,
+            scaleY: 1
           });
         }}
       />
-      {isSelected && (
-        <Transformer
-          ref={trRef}
-          boundBoxFunc={(oldBox, newBox) => {
-            // 最低サイズ制限
-            if (newBox.width < 5 || newBox.height < 5) {
-              return oldBox;
-            }
-            return newBox;
-          }}
-        />
-      )}
     </>
   );
 };

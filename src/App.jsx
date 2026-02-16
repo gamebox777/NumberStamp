@@ -20,8 +20,10 @@ function App() {
     line_width: 2,
     pen_style: 'solid'
   });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
   const [imageSrc, setImageSrc] = useState(null);
+  const [imageName, setImageName] = useState(null);
   const [imageSize, setImageSize] = useState({ width: 800, height: 600 });
   const stageRef = useRef(null);
 
@@ -57,9 +59,10 @@ function App() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
-      img.onload = () => {
+        img.onload = () => {
         setImageSize({ width: img.width, height: img.height });
         setImageSrc(event.target.result);
+        setImageName(file.name);
         // リセット
         resetItems([]);
         setSelectedIds([]);
@@ -232,6 +235,7 @@ function App() {
       resetItems([]);
       setSelectedIds([]);
       setImageSrc(null);
+      setImageName(null);
       // カウンターもリセットするかどうかは選択肢だが、
       // "新規"という意味合いならリセットした方が自然かもしれない。
       // ただし、画像はそのままで書き直したいだけの場合もあるので、
@@ -271,51 +275,111 @@ function App() {
           canRedo={canRedo}
         />
         
-        <div className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', backgroundColor: '#e0e0e0', padding: '20px' }}>
-            <CanvasArea 
-              ref={stageRef}
-              imageSrc={imageSrc}
-              mode={mode}
-              items={items}
-              setItems={setItems}
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              settings={settings}
-              scale={scale}
-            />
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', backgroundColor: '#e0e0e0', padding: '20px' }}>
+              <CanvasArea 
+                ref={stageRef}
+                imageSrc={imageSrc}
+                mode={mode}
+                items={items}
+                setItems={setItems}
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
+                settings={settings}
+                scale={scale}
+              />
+          </div>
+          {imageSrc && (
+            <div style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '20px',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              padding: '5px 10px',
+              borderRadius: '5px',
+              fontSize: '12px',
+              pointerEvents: 'none',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }}>
+              {imageName} ({imageSize.width} x {imageSize.height})
+            </div>
+          )}
         </div>
 
-        <div className="right-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100%', borderLeft: '1px solid #ccc', backgroundColor: '#f8f8f8' }}>
-          <SettingsPanel 
-            settings={settings}
-            setSettings={setSettings}
-            selectedItem={selectedItem}
-            updateSelectedItem={updateItem}
-            mode={mode}
-            onDelete={handleDeleteItem}
-          />
-          
-          {/* Zoom Control */}
-          <div style={{ padding: '15px', borderTop: '1px solid #ccc', backgroundColor: '#f0f0f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold' }}>ズーム</span>
-                  <span style={{ fontSize: '12px' }}>{Math.round(scale * 100)}%</span>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '-12px', // ボタンの幅の半分くらい左に出す
+                    transform: 'translateY(-50%)',
+                    width: '24px',
+                    height: '48px',
+                    backgroundColor: '#f0f0f0',
+                    border: '1px solid #ccc',
+                    borderRight: 'none', // 右側の境界線はサイドバーと重複するので消すかもしくはそのまま
+                    borderRadius: '4px 0 0 4px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                    fontSize: '10px',
+                    color: '#666',
+                    boxShadow: '-1px 0 2px rgba(0,0,0,0.1)'
+                }}
+                title={isSidebarOpen ? "設定パネルを閉じる" : "設定パネルを開く"}
+            >
+                {isSidebarOpen ? '▶' : '◀'}
+            </button>
+            <div className="right-sidebar" 
+                onClick={() => !isSidebarOpen && setIsSidebarOpen(true)}
+                style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100%', 
+                borderLeft: '1px solid #ccc', 
+                backgroundColor: isSidebarOpen ? '#f8f8f8' : '#e8e8e8',
+                width: isSidebarOpen ? '280px' : '30px',
+                transition: 'width 0.3s ease, background-color 0.3s ease',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                cursor: !isSidebarOpen ? 'pointer' : 'default'
+            }}>
+              <div style={{ width: '280px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <SettingsPanel 
+                    settings={settings}
+                    setSettings={setSettings}
+                    selectedItem={selectedItem}
+                    updateSelectedItem={updateItem}
+                    mode={mode}
+                    onDelete={handleDeleteItem}
+                  />
+                  
+                  {/* Zoom Control */}
+                  <div style={{ padding: '15px', borderTop: '1px solid #ccc', backgroundColor: '#f0f0f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold' }}>ズーム</span>
+                          <span style={{ fontSize: '12px' }}>{Math.round(scale * 100)}%</span>
+                      </div>
+                      <input 
+                          type="range" 
+                          min="0.1" 
+                          max="3.0" 
+                          step="0.1" 
+                          value={scale} 
+                          onChange={(e) => setScale(parseFloat(e.target.value))}
+                          style={{ width: '100%' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+                          <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>-</button>
+                          <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 5px' }}>100%</button>
+                          <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>+</button>
+                      </div>
+                  </div>
               </div>
-              <input 
-                  type="range" 
-                  min="0.1" 
-                  max="3.0" 
-                  step="0.1" 
-                  value={scale} 
-                  onChange={(e) => setScale(parseFloat(e.target.value))}
-                  style={{ width: '100%' }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-                  <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>-</button>
-                  <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 5px' }}>100%</button>
-                  <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>+</button>
-              </div>
-          </div>
+            </div>
         </div>
       </div>
     </ErrorBoundary>

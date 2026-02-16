@@ -53,9 +53,10 @@
 }
 
 .settings-panel {
-  width: 250px;
+  /* width: 250px; Removed fixed width */
+  flex: 1; /* Take available height */
   background-color: #f8f8f8;
-  border-left: 1px solid #ccc;
+  /* border-left: 1px solid #ccc; Removed border as parent handles it */
   padding: 15px;
   overflow-y: auto;
   color: #333;

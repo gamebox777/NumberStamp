@@ -1,8 +1,56 @@
-
+import { RgbaStringColorPicker } from 'react-colorful';
+import { useState, useRef, useEffect } from 'react';
 import packageJson from '../../package.json';
-
 import bannerImg from '../assets/banner.svg';
 import { validateProjectName } from '../utils/validation';
+import Tooltip from './Tooltip';
+
+// Simple Popover component for color picker
+const ColorPickerPopover = ({ color, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const popoverRef = useRef();
+
+  const handleClickOutside = (event) => {
+    if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="color-picker-wrapper" style={{ position: 'relative' }}>
+      <div
+        style={{
+          width: '30px',
+          height: '30px',
+          backgroundColor: color,
+          border: '1px solid #ccc',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          background: `linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)`,
+          backgroundSize: '10px 10px',
+          backgroundPosition: '0 0, 5px 5px'
+        }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div style={{ width: '100%', height: '100%', backgroundColor: color, borderRadius: '4px' }}></div>
+      </div>
+
+      {isOpen && (
+        <div className="popover" ref={popoverRef} style={{ position: 'absolute', zIndex: 100, top: '100%', left: 0, marginTop: '5px' }}>
+          <RgbaStringColorPicker color={color} onChange={onChange} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode, onDelete, projectName, setProjectName }) => {
 
@@ -41,26 +89,31 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
         </div>
       </div>
 
-      <div className="settings-group">
-        <h4>プロジェクト名</h4>
-        <input
-          type="text"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '5px',
-            marginBottom: '5px',
-            border: projectValidation.isValid ? '1px solid #ccc' : '2px solid #ff4d4d'
-          }}
-          placeholder="project-name"
-        />
-        {!projectValidation.isValid && (
-          <div style={{ color: '#ff4d4d', fontSize: '12px', marginBottom: '5px' }}>
-            {projectValidation.error}
-          </div>
-        )}
-      </div>
+      {mode === 'select' && (
+        <div className="settings-group">
+          <h4>プロジェクト名</h4>
+          <input
+            type="text"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '5px',
+              marginBottom: '5px',
+              border: projectValidation.isValid ? '1px solid #888' : '2px solid #ff4d4d',
+              backgroundColor: 'white',
+              color: 'black',
+              borderRadius: '2px'
+            }}
+            placeholder="project-name"
+          />
+          {!projectValidation.isValid && (
+            <div style={{ color: '#ff4d4d', fontSize: '11px', marginBottom: '5px' }}>
+              {projectValidation.error}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{
         padding: '10px',
@@ -151,21 +204,12 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
       {(mode !== 'select' || selectedItem) && (
         <div className="settings-group">
           <h4>色設定</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-            {colors.map(c => (
-              <div
-                key={c}
-                className={`color-option ${currentSettings.color === c ? 'selected' : ''}`}
-                style={{ backgroundColor: c }}
-                onClick={() => handleChange('color', c)}
-              />
-            ))}
-            <input
-              type="color"
-              value={currentSettings.color}
-              onChange={(e) => handleChange('color', e.target.value)}
-              style={{ width: '30px', height: '30px', padding: 0, border: 'none' }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+            <ColorPickerPopover
+              color={currentSettings.color}
+              onChange={(newColor) => handleChange('color', newColor)}
             />
+            <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.color}</span>
           </div>
         </div>
       )}
@@ -173,7 +217,54 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
       {(mode === 'rectangle' || (selectedItem && selectedItem.type === 'rectangle')) && (
         <div className="settings-group">
           <h4>矩形設定</h4>
-          {/* 矩形固有の設定があればここに追加 */}
+
+          <div className="settings-row">
+            <label>線の太さ</label>
+            <input
+              type="range"
+              min="1"
+              max="20"
+              value={currentSettings.strokeWidth || 5}
+              onChange={(e) => handleChange('strokeWidth', parseInt(e.target.value))}
+            />
+            <span>{currentSettings.strokeWidth || 5}px</span>
+          </div>
+
+
+          <div className="settings-group">
+            <h4>塗りつぶし色</h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={currentSettings.fill || 'rgba(0,0,0,0)'}
+                onChange={(newColor) => handleChange('fill', newColor)}
+              />
+              <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.fill}</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '10px' }}>
+              <Tooltip text="透明">
+                <div
+                  className={`color-option ${currentSettings.fill === 'transparent' ? 'selected' : ''}`}
+                  style={{
+                    width: '24px', height: '24px', border: '1px solid #ccc',
+                    background: 'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)',
+                    backgroundSize: '8px 8px',
+                    backgroundPosition: '0 0, 4px 4px',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handleChange('fill', 'transparent')}
+                />
+              </Tooltip>
+              {colors.map(c => (
+                <div
+                  key={c}
+                  className={`color-option ${currentSettings.fill === c ? 'selected' : ''}`}
+                  style={{ backgroundColor: c, width: '24px', height: '24px', cursor: 'pointer', border: currentSettings.fill === c ? '2px solid black' : '1px solid #ddd' }}
+                  onClick={() => handleChange('fill', c)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

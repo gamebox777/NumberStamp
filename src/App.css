@@ -10,7 +10,8 @@
   flex: 1;
   overflow: hidden;
   height: 100%;
-  color: #333; /* Force dark text color */
+  color: #333;
+  /* Force dark text color */
 }
 
 .toolbar {
@@ -44,7 +45,8 @@
 
 .canvas-area {
   /* flex: 1; Removed to allow natural size */
-  background-color: transparent; /* Changed to transparent as wrapper handles background */
+  background-color: transparent;
+  /* Changed to transparent as wrapper handles background */
   position: relative;
   /* overflow: hidden; Removed to allow scrolling */
   display: flex;
@@ -54,12 +56,14 @@
 
 .settings-panel {
   /* width: 250px; Removed fixed width */
-  flex: 1; /* Take available height */
+  flex: 1;
+  /* Take available height */
   background-color: #f8f8f8;
   /* border-left: 1px solid #ccc; Removed border as parent handles it */
   padding: 15px;
   overflow-y: auto;
   color: #333;
+  font-size: 12px;
 }
 
 .settings-group {
@@ -69,7 +73,14 @@
 .settings-group h3 {
   margin-top: 0;
   margin-bottom: 10px;
-  font-size: 14px;
+  font-size: 13px;
+  color: #333;
+}
+
+.settings-group h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-size: 12px;
   color: #333;
 }
 
@@ -81,12 +92,18 @@
 
 .settings-row label {
   width: 80px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.settings-row input, .settings-row select {
+.settings-row input,
+.settings-row select {
   flex: 1;
   padding: 4px;
+  background-color: white;
+  color: black;
+  border: 1px solid #888;
+  border-radius: 2px;
+  font-size: 11px;
 }
 
 .color-option {

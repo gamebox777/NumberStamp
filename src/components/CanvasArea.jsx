@@ -253,7 +253,8 @@ const CanvasArea = React.forwardRef(({
           width: Math.abs(newRect.width),
           height: Math.abs(newRect.height),
           color: settings.color,
-          radius: 3 // 線幅として使用
+          strokeWidth: settings.strokeWidth,
+          fill: settings.fill
         };
         setItems([...items, newItem]);
         setSelectedIds([newItem.id]);
@@ -389,7 +390,8 @@ const CanvasArea = React.forwardRef(({
                 item={{
                   ...newRect,
                   color: settings.color,
-                  radius: 2,
+                  strokeWidth: settings.strokeWidth,
+                  fill: settings.fill,
                   id: 'temp-rect'
                 }}
                 isSelected={false}

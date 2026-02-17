@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import useUndoRedo from './hooks/useUndoRedo';
 import { v4 as uuidv4 } from 'uuid';
 import { validateProjectName } from './utils/validation';
+import Tooltip from './components/Tooltip';
 
 function App() {
   const [items, setItems, undo, redo, canUndo, canRedo, resetItems] = useUndoRedo([]);
@@ -15,12 +16,14 @@ function App() {
   const [settings, setSettings] = useState({
     number: 1,
     step: 1,
-    color: '#FF0000',
+    color: 'rgba(255, 0, 0, 1)',
     radius: 20,
     shape: 'circle',
     brush_color: '',
     line_width: 2,
-    pen_style: 'solid'
+    pen_style: 'solid',
+    fill: 'transparent',
+    strokeWidth: 5
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -135,7 +138,7 @@ function App() {
   };
 
   // 画像エクスポート
-  const handleExport = () => {
+  const handleExport = (mimeType = 'image/png') => {
     if (!stageRef.current) return;
 
     // 選択枠などを消すために一時的に選択解除
@@ -145,15 +148,20 @@ function App() {
     // Reactの状態更新が反映されるのを待つ
     setTimeout(async () => {
       try {
-        const uri = stageRef.current.toDataURL({ pixelRatio: 2 }); // 高画質化
+        const uri = stageRef.current.toDataURL({ pixelRatio: 2, mimeType }); // 高画質化
 
         // dataURL to Blob
         const res = await fetch(uri);
         const blob = await res.blob();
 
-        await saveFile(blob, 'numstamp_export.png', [{
-          description: 'PNG Images',
-          accept: { 'image/png': ['.png'] }
+        const ext = mimeType === 'image/jpeg' ? 'jpg' : 'png';
+        const description = mimeType === 'image/jpeg' ? 'JPEG Images' : 'PNG Images';
+        const accept = {};
+        accept[mimeType] = [`.${ext}`];
+
+        await saveFile(blob, `numstamp_export.${ext}`, [{
+          description: description,
+          accept: accept
         }]);
 
       } catch (err) {
@@ -326,32 +334,40 @@ function App() {
         </div>
 
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          <Tooltip
+            text={isSidebarOpen ? "設定パネルを閉じる" : "設定パネルを開く"}
+            position="right"
             style={{
               position: 'absolute',
               top: '50%',
-              left: '-12px', // ボタンの幅の半分くらい左に出す
+              left: '-12px',
               transform: 'translateY(-50%)',
               width: '24px',
               height: '48px',
-              backgroundColor: '#f0f0f0',
-              border: '1px solid #ccc',
-              borderRight: 'none', // 右側の境界線はサイドバーと重複するので消すかもしくはそのまま
-              borderRadius: '4px 0 0 4px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 10,
-              fontSize: '10px',
-              color: '#666',
-              boxShadow: '-1px 0 2px rgba(0,0,0,0.1)'
+              zIndex: 10
             }}
-            title={isSidebarOpen ? "設定パネルを閉じる" : "設定パネルを開く"}
           >
-            {isSidebarOpen ? '▶' : '◀'}
-          </button>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: '#f0f0f0',
+                border: '1px solid #ccc',
+                borderRight: 'none',
+                borderRadius: '4px 0 0 4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                color: '#666',
+                boxShadow: '-1px 0 2px rgba(0,0,0,0.1)'
+              }}
+            >
+              {isSidebarOpen ? '▶' : '◀'}
+            </button>
+          </Tooltip>
           <div className="right-sidebar"
             onClick={() => !isSidebarOpen && setIsSidebarOpen(true)}
             style={{

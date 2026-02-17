@@ -1,6 +1,6 @@
 # NumberStamp
 
-### 🚀 実行URL: [https://number-stamp.vercel.app/](https://number-stamp.vercel.app/)
+### 🚀 実行URL: <a href="https://number-stamp.vercel.app/" target="_blank" rel="noopener noreferrer">https://number-stamp.vercel.app/</a>
 
 画像に連番付きのスタンプ（丸印・角丸四角）や矢印、矩形（枠線）を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebツールです。
 
@@ -114,4 +114,5 @@ npm run build
 ## 📝 更新履歴
 
 - **2026-02-17**: READMEにアプリ実行URLを追加
+- **2026-02-17**: 実行URLを別タブで開くように変更
 - **v1.0.0**: 初版リリース。スタンプ、矩形、矢印、画像保存機能を実装。

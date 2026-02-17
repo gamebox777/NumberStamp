@@ -14,8 +14,10 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
         width={item.width}
         height={item.height}
         stroke={item.color}
-        strokeWidth={item.radius ? item.radius / 2 : 2} // radiusを太さとして流用
-        fillEnabled={false}
+        strokeWidth={item.strokeWidth || 2}
+        fill={item.fill || 'transparent'}
+        fillEnabled={true}
+        rotation={item.rotation || 0}
         draggable={isSelected}
         onClick={onSelect}
         onTap={onSelect}
@@ -34,13 +36,14 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
           // スケールをリセットしてwidth/heightを更新
           node.scaleX(1);
           node.scaleY(1);
-          
+
           onChange({
             ...item,
             x: node.x(),
             y: node.y(),
             width: Math.max(5, node.width() * scaleX),
             height: Math.max(5, node.height() * scaleY),
+            rotation: node.rotation(),
             scaleX: 1,
             scaleY: 1
           });

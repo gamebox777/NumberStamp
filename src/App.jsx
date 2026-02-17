@@ -6,9 +6,11 @@ import CanvasArea from './components/CanvasArea';
 import ErrorBoundary from './components/ErrorBoundary';
 import useUndoRedo from './hooks/useUndoRedo';
 import { v4 as uuidv4 } from 'uuid';
+import { validateProjectName } from './utils/validation';
 
 function App() {
   const [items, setItems, undo, redo, canUndo, canRedo, resetItems] = useUndoRedo([]);
+  const [projectName, setProjectName] = useState('untitled-project');
   const [mode, setMode] = useState('stamp'); // select, stamp, rectangle
   const [settings, setSettings] = useState({
     number: 1,
@@ -167,7 +169,15 @@ function App() {
 
   // プロジェクト保存
   const handleSaveProject = async () => {
+    // バリデーションチェック
+    const validation = validateProjectName(projectName);
+    if (!validation.isValid) {
+      alert(`保存できません: ${validation.error}`);
+      return;
+    }
+
     const projectData = {
+      projectName,
       items,
       imageSrc,
       imageSize,
@@ -178,7 +188,7 @@ function App() {
     const json = JSON.stringify(projectData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
 
-    await saveFile(blob, 'numstamp_project.json', [{
+    await saveFile(blob, `${projectName}.json`, [{
       description: 'JSON Files',
       accept: { 'application/json': ['.json'] }
     }]);
@@ -193,6 +203,7 @@ function App() {
     reader.onload = (event) => {
       try {
         const projectData = JSON.parse(event.target.result);
+        if (projectData.projectName) setProjectName(projectData.projectName);
         if (projectData.items) resetItems(projectData.items);
         if (projectData.imageSrc) setImageSrc(projectData.imageSrc);
         if (projectData.imageSize) setImageSize(projectData.imageSize);
@@ -234,6 +245,7 @@ function App() {
     if (window.confirm('現在作業中の内容（画像とスタンプ）を全てクリアしますか？')) {
       resetItems([]);
       setSelectedIds([]);
+      setProjectName('untitled-project');
       setImageSrc(null);
       setImageName(null);
       // カウンターもリセットするかどうかは選択肢だが、
@@ -362,6 +374,8 @@ function App() {
                 updateSelectedItem={updateItem}
                 mode={mode}
                 onDelete={handleDeleteItem}
+                projectName={projectName}
+                setProjectName={setProjectName}
               />
 
               {/* Zoom Control */}
@@ -384,6 +398,12 @@ function App() {
                   <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 5px' }}>100%</button>
                   <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>+</button>
                 </div>
+              </div>
+
+              <div style={{ padding: '5px', textAlign: 'center', fontSize: '10px', color: '#666', backgroundColor: '#f0f0f0', borderTop: '1px solid #ddd' }}>
+                <a href="https://github.com/gamebox777/NumberStamp" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
+                  GitHub: gamebox777/NumberStamp
+                </a>
               </div>
             </div>
           </div>

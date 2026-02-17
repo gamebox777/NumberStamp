@@ -1,8 +1,10 @@
 
+import packageJson from '../../package.json';
+
 import bannerImg from '../assets/banner.svg';
+import { validateProjectName } from '../utils/validation';
 
-const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode, onDelete }) => {
-
+const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode, onDelete, projectName, setProjectName }) => {
 
   // 選択中のアイテムがあればそれの設定、なければ現在のツールの設定を表示
   const currentSettings = selectedItem ? selectedItem : settings;
@@ -18,11 +20,48 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
 
   const colors = ['#FF0000', '#0000FF', '#008000', '#FFA500', '#000000', '#FFFFFF'];
 
+  const projectValidation = validateProjectName(projectName);
+
   return (
     <div className="settings-panel">
-      <div className="banner-container" style={{ marginBottom: '15px', textAlign: 'center' }}>
+      <div className="banner-container" style={{ marginBottom: '15px', textAlign: 'center', position: 'relative' }}>
         <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block' }} />
+        <div style={{
+          position: 'absolute',
+          top: '5px',
+          right: '5px',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          color: 'white',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          fontSize: '10px',
+          fontWeight: 'bold'
+        }}>
+          v{packageJson.version}
+        </div>
       </div>
+
+      <div className="settings-group">
+        <h4>プロジェクト名</h4>
+        <input
+          type="text"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '5px',
+            marginBottom: '5px',
+            border: projectValidation.isValid ? '1px solid #ccc' : '2px solid #ff4d4d'
+          }}
+          placeholder="project-name"
+        />
+        {!projectValidation.isValid && (
+          <div style={{ color: '#ff4d4d', fontSize: '12px', marginBottom: '5px' }}>
+            {projectValidation.error}
+          </div>
+        )}
+      </div>
+
       <div style={{
         padding: '10px',
         marginBottom: '15px',

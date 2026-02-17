@@ -10,13 +10,14 @@ const URLImage = ({ image }) => {
   return <KonvaImage image={image} listening={false} />;
 };
 
-const CanvasArea = React.forwardRef(({ 
-  imageSrc, 
-  mode, 
-  items, 
-  setItems, 
-  selectedIds, 
-  setSelectedIds, 
+const CanvasArea = React.forwardRef(({
+  imageSrc,
+  mode,
+  setMode,
+  items,
+  setItems,
+  selectedIds,
+  setSelectedIds,
   settings,
   scale = 1.0
 }, ref) => {
@@ -53,14 +54,14 @@ const CanvasArea = React.forwardRef(({
   // 選択アイテムが変わったらTransformerのノードを更新
   useEffect(() => {
     if (trRef.current && ref.current) {
-        const stage = ref.current;
-        // IDセレクタ('#id')はIDが数字で始まるとエラーになる可能性があるため、関数で検索する
-        const selectedNodes = selectedIds.map(id => {
-            return stage.findOne((node) => node.id() === id);
-        }).filter(node => node);
-        
-        trRef.current.nodes(selectedNodes);
-        trRef.current.getLayer().batchDraw();
+      const stage = ref.current;
+      // IDセレクタ('#id')はIDが数字で始まるとエラーになる可能性があるため、関数で検索する
+      const selectedNodes = selectedIds.map(id => {
+        return stage.findOne((node) => node.id() === id);
+      }).filter(node => node);
+
+      trRef.current.nodes(selectedNodes);
+      trRef.current.getLayer().batchDraw();
     }
   }, [selectedIds, items]); // itemsが変わった時も再検索が必要（削除後など）
 
@@ -71,38 +72,56 @@ const CanvasArea = React.forwardRef(({
     const x = pos.x / scale;
     const y = pos.y / scale;
 
+    // 右クリック (button === 2) の処理
+    if (e.evt.button === 2) {
+      if (setMode) setMode('select');
+
+      // 何もないところをクリック -> 何もしない (or 選択解除? 今回は選択解除しない方が安全かもだが、Windwos標準などは解除される。
+      // ここではアイテムの上なら選択、そうでなければ何もしない、とする。
+
+      const id = e.target.id() || e.target.parent?.id();
+      if (id && id !== 'ghost') { // ghostは選択させない
+        // 既に選択されていれば何もしない（複数選択の解除を防ぐため）
+        // 単一選択に切り替えるか？ -> Explorerなどは右クリックで単一選択になる
+        if (!selectedIds.includes(id)) {
+          setSelectedIds([id]);
+        }
+      }
+      return; // 右クリックの場合は以降のスタンプ配置などをスキップ
+    }
+
     const clickedOnEmpty = e.target === stage;
 
     // Selectモード
     if (mode === 'select') {
-        if (clickedOnEmpty) {
-            // 何もないところをクリック -> 選択ステータスリセット & 範囲選択開始
-            setSelectedIds([]);
-            setSelectionBox({
-                startX: x,
-                startY: y,
-                width: 0,
-                height: 0
-            });
-        } else {
-            // アイテムをクリック
-            const id = e.target.id() || e.target.parent?.id(); // Groupの場合はparent.id()
-            if (id) {
-                // Ctrlキーが押されていれば追加/削除、そうでなければ単一選択
-                if (e.evt.ctrlKey || e.evt.metaKey) {
-                    if (selectedIds.includes(id)) {
-                        setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
-                    } else {
-                        setSelectedIds([...selectedIds, id]);
-                    }
-                } else {
-                    if (!selectedIds.includes(id)) {
-                         setSelectedIds([id]);
-                    }
-                }
+      if (clickedOnEmpty) {
+        // 何もないところをクリック -> 選択ステータスリセット & 範囲選択開始
+        setSelectedIds([]);
+        setSelectionBox({
+          startX: x,
+          startY: y,
+          width: 0,
+          height: 0
+        });
+      } else {
+        // アイテムをクリック
+        const id = e.target.id() || e.target.parent?.id(); // Groupの場合はparent.id()
+        if (id) {
+          // Ctrlキーが押されていれば追加/削除、そうでなければ単一選択
+          if (e.evt.ctrlKey || e.evt.metaKey) {
+            if (selectedIds.includes(id)) {
+              setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+            } else {
+              setSelectedIds([...selectedIds, id]);
             }
+          } else {
+            if (!selectedIds.includes(id)) {
+              setSelectedIds([id]);
+            }
+          }
         }
-        return;
+      }
+      return;
     }
 
     // 他のモードで既存アイテムをクリックした場合 (移動などを優先するならここでreturnするが、
@@ -127,7 +146,7 @@ const CanvasArea = React.forwardRef(({
         shape: settings.shape,
         arrowEndPoint: { x: 0, y: 0 }
       };
-      
+
       setItems([...items, newItemObj]);
       // setSelectedIds([id]); // 作成直後は選択しない
 
@@ -145,25 +164,31 @@ const CanvasArea = React.forwardRef(({
     }
   };
 
+
+
+  const [cursorPos, setCursorPos] = useState(null);
+
   const handleMouseMove = (e) => {
     const stage = e.target.getStage();
     const pos = stage.getPointerPosition();
     const x = pos.x / scale;
     const y = pos.y / scale;
 
+    setCursorPos({ x, y });
+
     if (mode === 'select' && selectionBox) {
-        setSelectionBox({
-            ...selectionBox,
-            width: x - selectionBox.startX,
-            height: y - selectionBox.startY
-        });
-        return;
+      setSelectionBox({
+        ...selectionBox,
+        width: x - selectionBox.startX,
+        height: y - selectionBox.startY
+      });
+      return;
     }
 
     if (mode === 'rectangle' && newRect) {
       const width = x - newRect.startX;
       const height = y - newRect.startY;
-      
+
       setNewRect({
         ...newRect,
         width: width,
@@ -172,45 +197,49 @@ const CanvasArea = React.forwardRef(({
     }
   };
 
+  const handleMouseLeave = () => {
+    setCursorPos(null);
+  };
+
   const handleMouseUp = (e) => {
     // 範囲選択の終了
     if (mode === 'select' && selectionBox) {
-        const sb = selectionBox;
-        // 正規化（幅・高さが負の場合の対応）
-        const box = {
-            x: Math.min(sb.startX, sb.startX + sb.width),
-            y: Math.min(sb.startY, sb.startY + sb.height),
-            width: Math.abs(sb.width),
-            height: Math.abs(sb.height)
-        };
+      const sb = selectionBox;
+      // 正規化（幅・高さが負の場合の対応）
+      const box = {
+        x: Math.min(sb.startX, sb.startX + sb.width),
+        y: Math.min(sb.startY, sb.startY + sb.height),
+        width: Math.abs(sb.width),
+        height: Math.abs(sb.height)
+      };
 
-        // 範囲内にあるアイテムを探す
-        // 簡単のため、中心点がボックス内にあるかどうかで判定
-        const foundIds = items.filter(item => {
-             // 矩形やスタンプのサイズも考慮すべきだが、まずは中心点or開始点で判定
-             // スタンプ: item.x, item.y は中心
-             // 矩形: item.x, item.y は左上（ただしwidth/heightが負の可能性もあるので正規化必要）
-             let itemX = item.x;
-             let itemY = item.y;
-             
-             // 矩形の場合、中心を計算して判定エリアに入れてあげるのが親切
-             if (item.type === 'rectangle') {
-                 // width/heightは正の値で保存されているはず（handleMouseUpでAbsしてる）
-                 itemX = item.x + item.width / 2;
-                 itemY = item.y + item.height / 2;
-             }
+      // 範囲内にあるアイテムを探す
+      // 簡単のため、中心点がボックス内にあるかどうかで判定
+      const foundIds = items.filter(item => {
+        // 矩形やスタンプのサイズも考慮すべきだが、まずは中心点or開始点で判定
+        // スタンプ: item.x, item.y は中心
+        // 矩形: item.x, item.y は左上（ただしwidth/heightが負の可能性もあるので正規化必要）
+        let itemX = item.x;
+        let itemY = item.y;
 
-             return (
-                 itemX >= box.x &&
-                 itemX <= box.x + box.width &&
-                 itemY >= box.y &&
-                 itemY <= box.y + box.height
-             );
-        }).map(item => item.id);
+        // 矩形の場合、中心を計算して判定エリアに入れてあげるのが親切
+        if (item.type === 'rectangle') {
+          // width/heightは正の値で保存されているはず（handleMouseUpでAbsしてる）
+          itemX = item.x + item.width / 2;
+          itemY = item.y + item.height / 2;
+        }
 
-        setSelectedIds(foundIds);
-        setSelectionBox(null);
-        return;
+        return (
+          itemX >= box.x &&
+          itemX <= box.x + box.width &&
+          itemY >= box.y &&
+          itemY <= box.y + box.height
+        );
+      }).map(item => item.id);
+
+      setSelectedIds(foundIds);
+      setSelectionBox(null);
+      return;
     }
 
     if (mode === 'rectangle' && newRect) {
@@ -234,55 +263,55 @@ const CanvasArea = React.forwardRef(({
   };
 
   const handleItemSelect = (id, e) => {
-      // StageのonClickと競合しないようにstopPropagationしたいが、
-      // KonvaではcancelBubble
-      if (e && e.cancelBubble) e.cancelBubble = true;
+    // StageのonClickと競合しないようにstopPropagationしたいが、
+    // KonvaではcancelBubble
+    if (e && e.cancelBubble) e.cancelBubble = true;
 
-      // Selectモード以外では選択させない？ -> 編集操作のためにSelectモード推奨
-      if (mode !== 'select') return;
+    // Selectモード以外では選択させない？ -> 編集操作のためにSelectモード推奨
+    if (mode !== 'select') return;
 
-      // 既に選択済みの場合は何もしない（ドラッグ開始かもしれないので）
-      // ただし、CtrlキーなどのハンドリングはMouseDownで行っているので、
-      // ここはクリック（タップ）時の単一選択補正用
-      // MouseDownで処理済みなら不要かも？
+    // 既に選択済みの場合は何もしない（ドラッグ開始かもしれないので）
+    // ただし、CtrlキーなどのハンドリングはMouseDownで行っているので、
+    // ここはクリック（タップ）時の単一選択補正用
+    // MouseDownで処理済みなら不要かも？
   };
 
   const handleItemChange = (updatedItem) => {
     // 選択されているアイテムの変更（移動など）があった場合、
     // KonvaのTransformerや一括ドラッグで他の選択アイテムも移動している可能性があるため、
     // 選択中の全アイテムの位置をDOM(Konva Node)から同期する。
-    
+
     if (selectedIds.includes(updatedItem.id)) {
-        // refがStageを指していることを想定
-        const stage = ref.current; 
-        if (!stage) return;
-        
-        setItems(prevItems => prevItems.map(item => {
-            if (selectedIds.includes(item.id)) {
-                // トリガーとなったアイテムは渡された値を優先（Rectのリサイズ計算などで計算済みのため）
-                if (item.id === updatedItem.id) {
-                    return updatedItem;
-                }
-                
-                // それ以外の選択アイテムはStage上のNodeから最新座標を取得
-                // IDで検索し、存在するか確認。セレクタエラー回避のためfindOne(func)を使用
-                const node = stage.findOne((n) => n.id() === item.id);
-                if (node) {
-                    return {
-                        ...item,
-                        x: node.x(),
-                        y: node.y(),
-                        rotation: node.rotation(),
-                        scaleX: node.scaleX(),
-                        scaleY: node.scaleY(),
-                    };
-                }
-            }
-            return item;
-        }));
+      // refがStageを指していることを想定
+      const stage = ref.current;
+      if (!stage) return;
+
+      setItems(prevItems => prevItems.map(item => {
+        if (selectedIds.includes(item.id)) {
+          // トリガーとなったアイテムは渡された値を優先（Rectのリサイズ計算などで計算済みのため）
+          if (item.id === updatedItem.id) {
+            return updatedItem;
+          }
+
+          // それ以外の選択アイテムはStage上のNodeから最新座標を取得
+          // IDで検索し、存在するか確認。セレクタエラー回避のためfindOne(func)を使用
+          const node = stage.findOne((n) => n.id() === item.id);
+          if (node) {
+            return {
+              ...item,
+              x: node.x(),
+              y: node.y(),
+              rotation: node.rotation(),
+              scaleX: node.scaleX(),
+              scaleY: node.scaleY(),
+            };
+          }
+        }
+        return item;
+      }));
     } else {
-        // 単一更新（選択されていない、あるいは単一選択）
-        setItems(prevItems => prevItems.map(item => item.id === updatedItem.id ? updatedItem : item));
+      // 単一更新（選択されていない、あるいは単一選択）
+      setItems(prevItems => prevItems.map(item => item.id === updatedItem.id ? updatedItem : item));
     }
   };
 
@@ -298,30 +327,34 @@ const CanvasArea = React.forwardRef(({
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onContextMenu={(e) => {
+            e.evt.preventDefault();
+          }}
           ref={ref}
         >
           <Layer>
             <URLImage image={image} />
-            
+
             {/* 矢印はスタンプの下に描画したいので先に描画 */}
             {items.map((item, i) => {
-                if (item.type === 'stamp' && item.arrowEndPoint) {
-                    return (
-                        <ArrowItem
-                            key={`arrow-${item.id}`}
-                            item={item}
-                            stampX={item.x}
-                            stampY={item.y}
-                            isSelected={selectedIds.includes(item.id)}
-                            onHandleDrag={(dx, dy) => {
-                                // 矢印の更新
-                                const updated = { ...item, arrowEndPoint: { x: dx, y: dy } };
-                                handleItemChange(updated);
-                            }}
-                        />
-                    );
-                }
-                return null;
+              if (item.type === 'stamp' && item.arrowEndPoint) {
+                return (
+                  <ArrowItem
+                    key={`arrow-${item.id}`}
+                    item={item}
+                    stampX={item.x}
+                    stampY={item.y}
+                    isSelected={selectedIds.includes(item.id)}
+                    onHandleDrag={(dx, dy) => {
+                      // 矢印の更新
+                      const updated = { ...item, arrowEndPoint: { x: dx, y: dy } };
+                      handleItemChange(updated);
+                    }}
+                  />
+                );
+              }
+              return null;
             })}
 
             {items.map((item, i) => {
@@ -352,41 +385,60 @@ const CanvasArea = React.forwardRef(({
 
             {/* ドラッグ中の新規矩形描画 */}
             {newRect && (
-               <RectangleItem
-                  item={{ 
-                      ...newRect, 
-                      color: settings.color,
-                      radius: 2, 
-                      id: 'temp-rect' 
-                  }}
-                  isSelected={false}
-               />
+              <RectangleItem
+                item={{
+                  ...newRect,
+                  color: settings.color,
+                  radius: 2,
+                  id: 'temp-rect'
+                }}
+                isSelected={false}
+              />
             )}
-            
+
+            {/* Ghost Stamp */}
+            {mode === 'stamp' && imageSrc && cursorPos && (
+              <StampItem
+                item={{
+                  id: 'ghost',
+                  type: 'stamp',
+                  x: cursorPos.x,
+                  y: cursorPos.y,
+                  number: settings.number,
+                  color: settings.color,
+                  radius: settings.radius,
+                  shape: settings.shape,
+                }}
+                isSelected={false}
+                opacity={0.5}
+                listening={false}
+              />
+            )}
+
             {/* 範囲選択ボックス (半透明の青) */}
             {selectionBox && (
-                <Rect
-                    x={selectionBox.startX}
-                    y={selectionBox.startY}
-                    width={selectionBox.width}
-                    height={selectionBox.height}
-                    fill="rgba(0, 161, 255, 0.3)"
-                    stroke="#00a1ff"
-                    strokeWidth={1}
-                />
+              <Rect
+                x={selectionBox.startX}
+                y={selectionBox.startY}
+                width={selectionBox.width}
+                height={selectionBox.height}
+                fill="rgba(0, 161, 255, 0.3)"
+                stroke="#00a1ff"
+                strokeWidth={1}
+              />
             )}
 
             {/* 一括操作用Transformer */}
             <Transformer
-                ref={trRef}
-                boundBoxFunc={(oldBox, newBox) => {
-                    if (newBox.width < 5 || newBox.height < 5) {
-                        return oldBox;
-                    }
-                    return newBox;
-                }}
-                // スタンプなどリサイズしたくないものがある場合の制御が必要ならここで行う
-                // enabledAnchorsなどで制限可能
+              ref={trRef}
+              boundBoxFunc={(oldBox, newBox) => {
+                if (newBox.width < 5 || newBox.height < 5) {
+                  return oldBox;
+                }
+                return newBox;
+              }}
+            // スタンプなどリサイズしたくないものがある場合の制御が必要ならここで行う
+            // enabledAnchorsなどで制限可能
             />
 
           </Layer>

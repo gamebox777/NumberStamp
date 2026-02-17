@@ -42,3 +42,19 @@ VercelはViteプロジェクトを自動的に検出するため、特別な設�
 
 デプロイが完了すると、自動的にURL（例: `number-stamp.vercel.app`）が発行されます。
 このURLにアクセスして、アプリケーションが正しく動作しているか確認してください。
+
+## 5. ブランチ運用（推奨）
+
+`main` ブランチを本番環境（Production）、`develop` などの他のブランチを開発環境（Preview）として運用できます。
+
+1. **Production Branch**: Vercelの設定で `main` をProduction Branchに指定します（デフォルト設定）。
+   - `main` ブランチにマージされると、自動的に本番環境へデプロイされます。
+
+2. **Preview Branch**: `develop` などの他のブランチにプッシュすると、プレビュー環境（Preview Deployment）が作成されます。
+   - 開発中の確認用として、個別のURLが発行されます（例: `number-stamp-git-develop-user.vercel.app`）。
+   - Pull Requestを作成した場合も同様にプレビューが生成されます。
+
+### 設定確認手順
+もし `main` 以外がProductionになっている場合は、Vercelのプロジェクト設定から以下の手順で変更できます。
+1. **Settings** > **Git** へ移動します。
+2. **Production Branch** の項目で `main` を入力・選択し、Saveします。

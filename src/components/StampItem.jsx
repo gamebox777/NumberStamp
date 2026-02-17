@@ -1,11 +1,13 @@
 import React from 'react';
 import { Group, Circle, Rect, Text } from 'react-konva';
 
-const StampItem = ({ 
-  item, 
-  isSelected, 
-  onSelect, 
-  onChange 
+const StampItem = ({
+  item,
+  isSelected,
+  onSelect,
+  onChange,
+  opacity = 1,
+  listening = true
 }) => {
   const shapeRef = React.useRef();
   const trRef = React.useRef();
@@ -25,9 +27,9 @@ const StampItem = ({
         cornerRadius: Math.min(width, height) * 0.2
       };
     } else {
-       return {
-         radius: item.radius
-       };
+      return {
+        radius: item.radius
+      };
     }
   };
 
@@ -58,27 +60,38 @@ const StampItem = ({
       draggable={isSelected}
       onClick={onSelect}
       onTap={onSelect}
+      opacity={opacity}
+      listening={listening}
+      onDragMove={(e) => {
+        if (e.target.id() === item.id) {
+          onChange({
+            ...item,
+            x: e.target.x(),
+            y: e.target.y(),
+          });
+        }
+      }}
       onDragEnd={(e) => {
         // グループ自身のドラッグ終了時のみ座標更新
         // 子要素（矢印ハンドル）のドラッグがバブルしてくるのを防ぐためIDチェック
         if (e.target.id() === item.id) {
-            onChange({
-              ...item,
-              x: e.target.x(),
-              y: e.target.y(),
-            });
+          onChange({
+            ...item,
+            x: e.target.x(),
+            y: e.target.y(),
+          });
         }
       }}
       onTransformEnd={(e) => {
         if (e.target.id() === item.id) {
-            onChange({
-                ...item,
-                x: e.target.x(),
-                y: e.target.y(),
-                rotation: e.target.rotation(),
-                scaleX: e.target.scaleX(),
-                scaleY: e.target.scaleY()
-            });
+          onChange({
+            ...item,
+            x: e.target.x(),
+            y: e.target.y(),
+            rotation: e.target.rotation(),
+            scaleX: e.target.scaleX(),
+            scaleY: e.target.scaleY()
+          });
         }
       }}
     >
@@ -99,21 +112,21 @@ const StampItem = ({
 
       {/* 選択時の枠線 */}
       {isSelected && (
-         item.shape === 'square' ? (
-            <Rect
-              {...shapeProps}
-              stroke="yellow"
-              strokeWidth={2}
-              dash={[4, 4]}
-            />
-         ) : (
-            <Circle
-              {...shapeProps}
-              stroke="yellow"
-              strokeWidth={2}
-              dash={[4, 4]}
-            />
-         )
+        item.shape === 'square' ? (
+          <Rect
+            {...shapeProps}
+            stroke="yellow"
+            strokeWidth={2}
+            dash={[4, 4]}
+          />
+        ) : (
+          <Circle
+            {...shapeProps}
+            stroke="yellow"
+            strokeWidth={2}
+            dash={[4, 4]}
+          />
+        )
       )}
 
       {/* テキスト */}
@@ -130,7 +143,7 @@ const StampItem = ({
         offsetX={item.shape === 'square' ? shapeProps.width / 2 : item.radius}
         offsetY={item.shape === 'square' ? shapeProps.height / 2 : item.radius}
       />
-      
+
 
 
     </Group>

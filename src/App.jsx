@@ -418,7 +418,7 @@ function App() {
 
               <div style={{ padding: '5px', textAlign: 'center', fontSize: '10px', color: '#666', backgroundColor: '#f0f0f0', borderTop: '1px solid #ddd' }}>
                 <a href="https://github.com/gamebox777/NumberStamp" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
-                  GitHub: gamebox777/NumberStamp
+                  マニュアル(GitHub) gamebox777/NumberStamp
                 </a>
               </div>
             </div>

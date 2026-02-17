@@ -1,7 +1,7 @@
 import { RgbaStringColorPicker } from 'react-colorful';
 import { useState, useRef, useEffect } from 'react';
 import packageJson from '../../package.json';
-import bannerImg from '../assets/banner.svg';
+import bannerImg from '../assets/banner.jpg';
 import { validateProjectName } from '../utils/validation';
 import Tooltip from './Tooltip';
 
@@ -73,7 +73,7 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
   return (
     <div className="settings-panel">
       <div className="banner-container" style={{ marginBottom: '15px', textAlign: 'center', position: 'relative' }}>
-        <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block' }} />
+        <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block', border: '1px solid #ccc' }} />
         <div style={{
           position: 'absolute',
           top: '5px',

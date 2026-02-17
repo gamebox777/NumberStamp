@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import StampItem from './StampItem';
 import RectangleItem from './RectangleItem';
 import ArrowItem from './ArrowItem';
+import TextItem from './TextItem';
 
 const URLImage = ({ image }) => {
   return <KonvaImage image={image} listening={false} />;
@@ -161,6 +162,23 @@ const CanvasArea = React.forwardRef(({
         startY: y
       });
       setSelectedIds([]);
+    } else if (mode === 'text' && image) {
+      // Text Mode
+      const id = uuidv4();
+      const newItemObj = {
+        id: id,
+        type: 'text',
+        x: x,
+        y: y,
+        text: settings.text,
+        fontSize: settings.fontSize,
+        fontFamily: settings.fontFamily,
+        fill: settings.color, // Text uses 'fill' for color
+      };
+
+      setItems([...items, newItemObj]);
+      setSelectedIds([id]); // Automatically select the new text to edit it easily
+      setMode('select'); // Switch back to select mode after placing text (optional, but common for text)
     }
   };
 
@@ -373,6 +391,16 @@ const CanvasArea = React.forwardRef(({
               } else if (item.type === 'rectangle') {
                 return (
                   <RectangleItem
+                    key={item.id}
+                    item={item}
+                    isSelected={isSelected}
+                    onSelect={(e) => handleItemSelect(item.id, e)}
+                    onChange={handleItemChange}
+                  />
+                );
+              } else if (item.type === 'text') {
+                return (
+                  <TextItem
                     key={item.id}
                     item={item}
                     isSelected={isSelected}

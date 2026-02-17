@@ -23,7 +23,10 @@ function App() {
     line_width: 2,
     pen_style: 'solid',
     fill: 'transparent',
-    strokeWidth: 5
+    strokeWidth: 5,
+    fontSize: 24,
+    fontFamily: 'Arial',
+    text: 'Text'
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -190,7 +193,7 @@ function App() {
       imageSrc,
       imageSize,
       settings,
-      version: '1.0'
+      version: '1.1'
     };
 
     const json = JSON.stringify(projectData, null, 2);

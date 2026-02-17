@@ -268,6 +268,62 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
         </div>
       )}
 
+      {(mode === 'text' || (selectedItem && selectedItem.type === 'text')) && (
+        <div className="settings-group">
+          <h4>テキスト設定</h4>
+          <div className="settings-row" style={{ display: 'block' }}>
+            <label style={{ marginBottom: '5px', display: 'block' }}>テキスト内容</label>
+            <textarea
+              value={currentSettings.text || ''}
+              onChange={(e) => handleChange('text', e.target.value)}
+              style={{ width: '100%', height: '60px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
+
+          <div className="settings-row">
+            <label>フォントサイズ</label>
+            <input
+              type="number"
+              min="8"
+              max="200"
+              value={currentSettings.fontSize || 24}
+              onChange={(e) => handleChange('fontSize', parseInt(e.target.value))}
+              style={{ width: '60px' }}
+            />
+            <span>px</span>
+          </div>
+
+          <div className="settings-row">
+            <label>フォント</label>
+            <select
+              value={currentSettings.fontFamily || 'Arial'}
+              onChange={(e) => handleChange('fontFamily', e.target.value)}
+              style={{ width: '130px' }}
+            >
+              <option value="Arial">Arial</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="serif">Serif</option>
+              <option value="sans-serif">Sans-serif</option>
+              <option value="monospace">Monospace</option>
+              <option value="'Yu Gothic', 'YuGothic'">游ゴシック</option>
+              <option value="'Meiryo', 'Hiragino Kaku Gothic ProN'">メイリオ/ヒラギノ角ゴ</option>
+            </select>
+          </div>
+
+          <div className="settings-row">
+            <label>文字色</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={currentSettings.fill || '#000000'} // Text uses 'fill' for color
+                onChange={(newColor) => handleChange('fill', newColor)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

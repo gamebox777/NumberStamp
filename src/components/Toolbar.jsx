@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MousePointer2, Stamp, Square, Download, Image as ImageIcon, FileJson, FolderOpen, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
+import { MousePointer2, Stamp, Square, Type, Download, Image as ImageIcon, FileJson, FolderOpen, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
 import Tooltip from './Tooltip';
 
 const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadProject, onClearAll, undo, redo, canUndo, canRedo }) => {
@@ -50,6 +50,15 @@ const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadPr
           onClick={() => setMode('rectangle')}
         >
           <Square size={24} />
+        </div>
+      </Tooltip>
+
+      <Tooltip text="テキスト (Text)" position="right">
+        <div
+          className={`toolbar-button ${mode === 'text' ? 'active' : ''}`}
+          onClick={() => setMode('text')}
+        >
+          <Type size={24} />
         </div>
       </Tooltip>
 
@@ -173,7 +182,7 @@ const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadPr
           <Trash2 size={24} />
         </div>
       </Tooltip>
-    </div>
+    </div >
   );
 };
 export default Toolbar;

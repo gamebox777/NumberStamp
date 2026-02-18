@@ -272,7 +272,14 @@ const CanvasArea = React.forwardRef(({
           height: Math.abs(newRect.height),
           color: settings.color,
           strokeWidth: settings.strokeWidth,
-          fill: settings.fill
+          fill: settings.fill,
+          text: settings.rectText,
+          fontSize: settings.rectFontSize,
+          fontFamily: settings.rectFontFamily,
+          textColor: settings.rectTextColor,
+          align: settings.rectAlign,
+          verticalAlign: settings.rectVerticalAlign,
+          wrap: settings.rectTextWrap || 'none'
         };
         setItems([...items, newItem]);
         setSelectedIds([newItem.id]);

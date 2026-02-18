@@ -8,6 +8,8 @@ import useUndoRedo from './hooks/useUndoRedo';
 import { v4 as uuidv4 } from 'uuid';
 import { validateProjectName } from './utils/validation';
 import Tooltip from './components/Tooltip';
+import packageJson from '../package.json';
+import bannerImg from './assets/banner_new.jpg';
 
 function App() {
   const [items, setItems, undo, redo, canUndo, canRedo, resetItems] = useUndoRedo([]);
@@ -26,7 +28,14 @@ function App() {
     strokeWidth: 5,
     fontSize: 24,
     fontFamily: 'Arial',
-    text: 'Text'
+    text: 'Text',
+    rectText: '',
+    rectFontSize: 24,
+    rectFontFamily: 'Arial',
+    rectTextColor: '#000000',
+    rectAlign: 'center',
+    rectVerticalAlign: 'middle',
+    rectTextWrap: 'none'
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -58,6 +67,27 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [undo, redo]);
+
+  // 設定のマイグレーション（機能追加時のデフォルト値補完）
+  useEffect(() => {
+    setSettings(prev => {
+      const defaults = {
+        rectText: '',
+        rectFontSize: 24,
+        rectFontFamily: 'Arial',
+        rectTextColor: '#000000',
+        rectAlign: 'center',
+        rectVerticalAlign: 'middle',
+        rectTextWrap: 'none'
+      };
+      // キーが足りない場合のみ追加
+      const missingKeys = Object.keys(defaults).filter(key => prev[key] === undefined);
+      if (missingKeys.length > 0) {
+        return { ...prev, ...defaults };
+      }
+      return prev;
+    });
+  }, []);
 
   // 画像読み込み
   const handleImageLoad = (e) => {
@@ -397,31 +427,48 @@ function App() {
                 setProjectName={setProjectName}
               />
 
-              {/* Zoom Control */}
-              <div style={{ padding: '15px', borderTop: '1px solid #ccc', backgroundColor: '#f0f0f0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold' }}>ズーム</span>
-                  <span style={{ fontSize: '12px' }}>{Math.round(scale * 100)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="3.0"
-                  step="0.1"
-                  value={scale}
-                  onChange={(e) => setScale(parseFloat(e.target.value))}
-                  style={{ width: '100%' }}
-                />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-                  <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>-</button>
-                  <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 5px' }}>100%</button>
-                  <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 5px' }}>+</button>
+              {/* Zoom Control Compact */}
+              <div style={{ padding: '10px', borderTop: '1px solid #ccc', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                 <span style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>Zoom: {Math.round(scale * 100)}%</span>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="3.0"
+                    step="0.1"
+                    value={scale}
+                    onChange={(e) => setScale(parseFloat(e.target.value))}
+                    style={{ flex: 1, margin: '0 5px' }}
+                  />
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>-</button>
+                    <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>1:1</button>
+                    <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>+</button>
+                  </div>
+              </div>
+
+              {/* Banner at bottom */}
+               <div className="banner-container" style={{ padding: '10px', textAlign: 'center', position: 'relative', borderTop: '1px solid #ccc' }}>
+                <a href="https://github.com/gamebox777/NumberStamp/blob/main/README.md" target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none' }}>
+                  <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block', border: '1px solid #ccc' }} />
+                </a>
+                <div style={{
+                  position: 'absolute',
+                  top: '15px',
+                  right: '15px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  color: 'white',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                  fontWeight: 'bold'
+                }}>
+                  v{packageJson.version}
                 </div>
               </div>
 
               <div style={{ padding: '5px', textAlign: 'center', fontSize: '10px', color: '#666', backgroundColor: '#f0f0f0', borderTop: '1px solid #ddd' }}>
                 <a href="https://github.com/gamebox777/NumberStamp" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
-                  マニュアル(GitHub) gamebox777/NumberStamp
+                  マニュアル(GitHub)
                 </a>
               </div>
             </div>

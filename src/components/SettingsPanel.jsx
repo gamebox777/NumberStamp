@@ -1,7 +1,7 @@
 import { RgbaStringColorPicker } from 'react-colorful';
 import { useState, useRef, useEffect } from 'react';
-import packageJson from '../../package.json';
-import bannerImg from '../assets/banner.jpg';
+import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine } from 'lucide-react';
+
 import { validateProjectName } from '../utils/validation';
 import Tooltip from './Tooltip';
 
@@ -72,22 +72,7 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
 
   return (
     <div className="settings-panel">
-      <div className="banner-container" style={{ marginBottom: '15px', textAlign: 'center', position: 'relative' }}>
-        <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block', border: '1px solid #ccc' }} />
-        <div style={{
-          position: 'absolute',
-          top: '5px',
-          right: '5px',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          color: 'white',
-          padding: '2px 6px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          fontWeight: 'bold'
-        }}>
-          v{packageJson.version}
-        </div>
-      </div>
+
 
       {mode === 'select' && (
         <div className="settings-group">
@@ -264,6 +249,139 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
                 />
               ))}
             </div>
+          </div>
+
+          <div className="settings-group">
+            <h4>矩形内テキスト設定</h4>
+            <div className="settings-row" style={{ display: 'block' }}>
+              <label style={{ marginBottom: '5px', display: 'block' }}>テキスト内容</label>
+              <textarea
+                value={isEditing ? (selectedItem.text || '') : (settings.rectText || '')}
+                onChange={(e) => handleChange(isEditing ? 'text' : 'rectText', e.target.value)}
+                style={{ width: '100%', height: '60px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                placeholder="テキストを入力..."
+              />
+            </div>
+
+            <div className="settings-row">
+              <label>フォントサイズ</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <input
+                  type="number"
+                  min="8"
+                  max="200"
+                  value={isEditing ? (selectedItem.fontSize || 24) : (settings.rectFontSize || 24)}
+                  onChange={(e) => handleChange(isEditing ? 'fontSize' : 'rectFontSize', parseInt(e.target.value))}
+                  style={{ width: '50px' }}
+                />
+                <span>px</span>
+              </div>
+            </div>
+
+            <div className="settings-row">
+              <label>フォント</label>
+              <select
+                value={isEditing ? (selectedItem.fontFamily || 'Arial') : (settings.rectFontFamily || 'Arial')}
+                onChange={(e) => handleChange(isEditing ? 'fontFamily' : 'rectFontFamily', e.target.value)}
+                style={{ width: '130px' }}
+              >
+                <option value="Arial">Arial</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="serif">Serif</option>
+                <option value="sans-serif">Sans-serif</option>
+                <option value="monospace">Monospace</option>
+                <option value="'Yu Gothic', 'YuGothic'">游ゴシック</option>
+                <option value="'Meiryo', 'Hiragino Kaku Gothic ProN'">メイリオ/ヒラギノ角ゴ</option>
+              </select>
+            </div>
+
+            <div className="settings-row">
+              <label>文字色</label>
+              <ColorPickerPopover
+                color={isEditing ? (selectedItem.textColor || '#000000') : (settings.rectTextColor || '#000000')}
+                onChange={(newColor) => handleChange(isEditing ? 'textColor' : 'rectTextColor', newColor)}
+              />
+            </div>
+
+            <div className="settings-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '5px' }}>
+              <label>配置</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                 {/* Horizontal Align */}
+                <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
+                  {['left', 'center', 'right'].map((align) => (
+                    <div
+                      key={align}
+                      onClick={() => handleChange(isEditing ? 'align' : 'rectAlign', align)}
+                      style={{
+                        padding: '5px',
+                        cursor: 'pointer',
+                        backgroundColor: (isEditing ? (selectedItem.align || 'center') : (settings.rectAlign || 'center')) === align ? '#e0e0e0' : 'transparent',
+                        display: 'flex', alignItems: 'center'
+                      }}
+                      title={align}
+                    >
+                      {align === 'left' && <AlignLeft size={16} />}
+                      {align === 'center' && <AlignCenter size={16} />}
+                      {align === 'right' && <AlignRight size={16} />}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Vertical Align */}
+                <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
+                  {['top', 'middle', 'bottom'].map((valign) => (
+                    <div
+                      key={valign}
+                      onClick={() => handleChange(isEditing ? 'verticalAlign' : 'rectVerticalAlign', valign)}
+                      style={{
+                        padding: '5px',
+                        cursor: 'pointer',
+                        backgroundColor: (isEditing ? (selectedItem.verticalAlign || 'middle') : (settings.rectVerticalAlign || 'middle')) === valign ? '#e0e0e0' : 'transparent',
+                        display: 'flex', alignItems: 'center'
+                      }}
+                      title={valign}
+                    >
+                      {valign === 'top' && <ArrowUpFromLine size={16} />}
+                      {valign === 'middle' && <Minus size={16} />}
+                      {valign === 'bottom' && <ArrowDownToLine size={16} />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="settings-row">
+              <label>折り返し</label>
+              <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
+                <div
+                  onClick={() => handleChange(isEditing ? 'wrap' : 'rectTextWrap', 'none')}
+                  style={{
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    backgroundColor: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'none' ? '#e0e0e0' : 'transparent',
+                    display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px'
+                  }}
+                  title="はみ出す"
+                >
+                  <ScanLine size={16} /> <span>はみ出す</span>
+                </div>
+                <div
+                  onClick={() => handleChange(isEditing ? 'wrap' : 'rectTextWrap', 'fit')}
+                  style={{
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    backgroundColor: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'fit' ? '#e0e0e0' : 'transparent',
+                    display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', borderLeft: '1px solid #ccc'
+                  }}
+                  title="収める"
+                >
+                  <Minimize size={16} /> <span>収める</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       )}

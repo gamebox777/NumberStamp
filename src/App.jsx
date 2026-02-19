@@ -69,6 +69,43 @@ function App() {
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, canvasX: 0, canvasY: 0 });
   const canvasWrapperRef = useRef(null);
 
+  // Developer Mode State
+  const [isDevMode, setIsDevMode] = useState(false);
+  const devModeClickCount = useRef(0);
+  const devModeTimer = useRef(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Developer Mode: Track mouse position
+  useEffect(() => {
+    if (!isDevMode) return;
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isDevMode]);
+
+  // Developer Mode: Toggle trigger
+  const handleVersionClick = (e) => {
+    // Prevent default to avoid selecting text
+    e.preventDefault();
+
+    devModeClickCount.current += 1;
+    if (devModeTimer.current) clearTimeout(devModeTimer.current);
+
+    if (devModeClickCount.current >= 5) {
+      const newMode = !isDevMode;
+      setIsDevMode(newMode);
+      devModeClickCount.current = 0;
+      alert(`Developer Mode: ${newMode ? "ON" : "OFF"}`);
+    } else {
+      devModeTimer.current = setTimeout(() => {
+        devModeClickCount.current = 0;
+      }, 2000);
+    }
+  };
+
+
   // クリップボード操作
   const handleCopy = () => {
     if (selectedIds.length === 0) return;
@@ -115,6 +152,74 @@ function App() {
 
     setItems(prevItems => [...prevItems, ...newItems]);
     setSelectedIds(newItems.map(item => item.id));
+  };
+
+  // Z-index (重ね順) 操作
+  const handleZOrder = (action) => {
+    console.log('handleZOrder called', action, selectedIds);
+    if (selectedIds.length === 0) return;
+
+    setItems(prevItems => {
+      console.log('handleZOrder updater', prevItems.length);
+      let newItems = [...prevItems];
+      const selectedIndices = newItems
+        .map((item, index) => ({ id: item.id, index }))
+        .filter(item => selectedIds.includes(item.id))
+        .map(item => item.index)
+        .sort((a, b) => a - b); // Ascending order
+
+      console.log('selectedIndices', selectedIndices);
+
+      if (selectedIndices.length === 0) return prevItems;
+
+      if (action === 'front') {
+        // move to end
+        const movingItems = selectedIndices.map(i => newItems[i]);
+        // remove from old positions (iterate reverse to not mess up indices)
+        for (let i = selectedIndices.length - 1; i >= 0; i--) {
+          newItems.splice(selectedIndices[i], 1);
+        }
+        newItems.push(...movingItems);
+
+      } else if (action === 'back') {
+        // move to start
+        const movingItems = selectedIndices.map(i => newItems[i]);
+        for (let i = selectedIndices.length - 1; i >= 0; i--) {
+          newItems.splice(selectedIndices[i], 1);
+        }
+        newItems.unshift(...movingItems);
+
+      } else if (action === 'forward') {
+        // swap with next one
+        // Iterate from end to start
+        for (let i = selectedIndices.length - 1; i >= 0; i--) {
+          const idx = selectedIndices[i];
+          if (idx < newItems.length - 1) {
+            const nextItem = newItems[idx + 1];
+            if (!selectedIds.includes(nextItem.id)) {
+              // Swap
+              [newItems[idx], newItems[idx + 1]] = [newItems[idx + 1], newItems[idx]];
+            }
+          }
+        }
+
+      } else if (action === 'backward') {
+        // swap with prev one
+        // Iterate from start to end
+        for (let i = 0; i < selectedIndices.length; i++) {
+          const idx = selectedIndices[i];
+          if (idx > 0) {
+            const prevItem = newItems[idx - 1];
+            if (!selectedIds.includes(prevItem.id)) {
+              [newItems[idx], newItems[idx - 1]] = [newItems[idx - 1], newItems[idx]];
+            }
+          }
+        }
+      }
+
+      console.log('New items order IDs:', newItems.map(i => i.id));
+      return newItems;
+    });
   };
 
   // キーボードショートカット (Undo/Redo, Copy/Paste)
@@ -211,6 +316,22 @@ function App() {
 
   const handleDragOver = (e) => {
     e.preventDefault();
+  };
+
+  // キャンバス作成（白い背景画像を生成）
+  const handleCreateCanvas = (width, height) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+    const dataUrl = canvas.toDataURL('image/png');
+    setImageSrc(dataUrl);
+    setImageSize({ width, height });
+    setImageName(`canvas (${width}×${height})`);
+    resetItems([]);
+    setSelectedIds([]);
   };
 
   // アイテム更新
@@ -407,6 +528,12 @@ function App() {
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div ref={canvasWrapperRef} className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', backgroundColor: '#e0e0e0', padding: '20px', position: 'relative' }}
+            onMouseDown={(e) => {
+              // 左クリックで右クリックメニューを閉じる（Konva canvas内のクリックもここで検知）
+              if (e.button === 0 && contextMenu.visible) {
+                setContextMenu({ ...contextMenu, visible: false });
+              }
+            }}
           >
             <CanvasArea
               ref={stageRef}
@@ -421,6 +548,7 @@ function App() {
               setSelectedIds={setSelectedIds}
               settings={settings}
               scale={scale}
+              onCreateCanvas={handleCreateCanvas}
               onContextMenu={(clientX, clientY, canvasX, canvasY) => {
                 // canvasWrapperの位置を基準にメニュー座標を計算
                 const wrapper = canvasWrapperRef.current;
@@ -446,6 +574,7 @@ function App() {
               onPaste={() => handlePasteAtPosition(contextMenu.canvasX, contextMenu.canvasY)}
               onDelete={handleDeleteItem}
               onClose={() => setContextMenu({ ...contextMenu, visible: false })}
+              onZOrder={handleZOrder}
             />
           </div>
           {imageSrc && (
@@ -519,6 +648,8 @@ function App() {
                 settings={settings}
                 setSettings={setSettings}
                 selectedItem={selectedItem}
+                selectedIndex={selectedIds.length === 1 ? items.findIndex(i => i.id === selectedIds[0]) : -1}
+                totalItems={items.length}
                 updateSelectedItem={updateItem}
                 mode={mode}
                 onDelete={handleDeleteItem}
@@ -559,13 +690,24 @@ function App() {
                   padding: '2px 6px',
                   borderRadius: '4px',
                   fontSize: '10px',
-                  fontWeight: 'bold'
-                }}>
+                  fontWeight: 'bold',
+                  pointerEvents: 'auto',
+                  cursor: 'pointer'
+                }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // Link clickを防ぐ
+                    handleVersionClick(e);
+                  }}
+                >
                   v{packageJson.version}
                 </div>
               </div>
 
-              <div style={{ padding: '5px', textAlign: 'center', fontSize: '10px', color: '#666', backgroundColor: '#f0f0f0', borderTop: '1px solid #ddd' }}>
+
+              <div
+                style={{ padding: '5px', textAlign: 'center', fontSize: '10px', color: '#666', backgroundColor: '#f0f0f0', borderTop: '1px solid #ddd' }}
+              >
                 <a href="https://github.com/gamebox777/NumberStamp" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
                   マニュアル(GitHub)
                 </a>
@@ -573,7 +715,58 @@ function App() {
             </div>
           </div>
         </div>
-      </div>
+      </div >
+      {isDevMode && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          left: '70px', // Right of toolbar
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          color: '#00ff00',
+          padding: '10px',
+          borderRadius: '5px',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          fontFamily: 'monospace',
+          fontSize: '12px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+          maxWidth: '300px'
+        }}>
+          <div style={{ borderBottom: '1px solid #00ff00', marginBottom: '5px', fontWeight: 'bold' }}>=== Developer Mode ===</div>
+          <div>Mouse: ({mousePos.x}, {mousePos.y})</div>
+          <div>Zoom: {Math.round(scale * 100)}%</div>
+          <div>Mode: {mode}</div>
+          <div>Items: {items.length}</div>
+          <div>Selection: {selectedIds.length > 0 ? selectedIds.length : 'None'}</div>
+          {selectedIds.length === 1 && (() => {
+            const item = items.find(i => i.id === selectedIds[0]);
+            const index = items.findIndex(i => i.id === selectedIds[0]);
+            if (!item) return null;
+            return (
+              <div style={{ marginTop: '5px', borderTop: '1px solid #555', paddingTop: '5px' }}>
+                <div style={{ color: '#ffff00' }}>[Selected Item]</div>
+                <div>ID: {item.id.slice(0, 8)}...</div>
+                <div>Type: {item.type}</div>
+                <div>Z-Order: {index}</div>
+                <div>Pos: ({Math.round(item.x)}, {Math.round(item.y)})</div>
+                {item.type === 'stamp' && <div>Size: r={item.radius}</div>}
+                {item.type === 'rectangle' && <div>Size: {Math.round(item.width)}x{Math.round(item.height)}</div>}
+                {item.type === 'text' && <div>Size: {item.fontSize}px</div>}
+                {(item.type === 'pen' || item.type === 'line') && <div>Points: {item.points.length / 2}</div>}
+              </div>
+            );
+          })()}
+          {selectedIds.length > 1 && (
+            <div style={{ marginTop: '5px', borderTop: '1px solid #555', paddingTop: '5px' }}>
+              <div style={{ color: '#ffff00' }}>[Multi Selection]</div>
+              <div>Count: {selectedIds.length}</div>
+            </div>
+          )}
+          <div>Project: {projectName}</div>
+          {imageSrc && <div>Image: {imageSize.width}x{imageSize.height}</div>}
+        </div>
+      )
+      }
     </ErrorBoundary>
   );
 }

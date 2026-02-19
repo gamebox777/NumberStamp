@@ -13,6 +13,14 @@ const URLImage = React.memo(({ image }) => {
   return <KonvaImage image={image} listening={false} />;
 });
 
+const CANVAS_PRESETS = [
+  { label: 'HD (16:9)', width: 1920, height: 1080 },
+  { label: 'A4 横', width: 1754, height: 1240 },
+  { label: 'A4 縦', width: 1240, height: 1754 },
+  { label: 'スクエア', width: 1024, height: 1024 },
+  { label: '小 (4:3)', width: 800, height: 600 },
+];
+
 const CanvasArea = React.forwardRef(({
   imageSrc,
   mode,
@@ -23,7 +31,8 @@ const CanvasArea = React.forwardRef(({
   setSelectedIds,
   settings,
   scale = 1.0,
-  onContextMenu: onContextMenuCallback
+  onContextMenu: onContextMenuCallback,
+  onCreateCanvas
 }, ref) => {
   const [image] = useImage(imageSrc || '');
   const [newRect, setNewRect] = useState(null); // ドラッグ中の新規矩形
@@ -430,6 +439,7 @@ const CanvasArea = React.forwardRef(({
   };
 
 
+  console.log('CanvasArea Render. Items order:', items.map(i => i.id));
   return (
     <div className="canvas-area">
       {imageSrc ? (
@@ -642,9 +652,35 @@ const CanvasArea = React.forwardRef(({
           </Layer>
         </Stage>
       ) : (
-        <div style={{ textAlign: 'center', color: '#666' }}>
+        <div style={{ textAlign: 'center', color: '#666', padding: '40px 20px' }}>
           <p>画像を読み込んでください</p>
           <p>(ドラッグ＆ドロップまたはツールバーから)</p>
+          <div style={{ marginTop: '24px', borderTop: '1px solid #ccc', paddingTop: '20px' }}>
+            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '12px', color: '#444' }}>キャンバスを作成</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', maxWidth: '320px', margin: '0 auto' }}>
+              {CANVAS_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => onCreateCanvas && onCreateCanvas(preset.width, preset.height)}
+                  style={{
+                    padding: '10px 8px',
+                    border: '1px solid #bbb',
+                    borderRadius: '6px',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    color: '#333',
+                    transition: 'background-color 0.15s, border-color 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.target.style.backgroundColor = '#e8f0fe'; e.target.style.borderColor = '#4a90d9'; }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = '#fff'; e.target.style.borderColor = '#bbb'; }}
+                >
+                  <div style={{ fontWeight: 'bold' }}>{preset.label}</div>
+                  <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{preset.width} × {preset.height}</div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

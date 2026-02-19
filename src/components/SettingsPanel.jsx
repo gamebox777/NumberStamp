@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { RgbaStringColorPicker } from 'react-colorful';
-import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine, RotateCcw, Palette } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine, RotateCcw, RotateCw, Palette } from 'lucide-react';
 
 import { validateProjectName } from '../utils/validation';
 import Tooltip from './Tooltip';
@@ -278,13 +278,51 @@ const ColorPickerPopover = ({ color, onChange }) => {
   );
 };
 
-const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode, onDelete, projectName, setProjectName }) => {
+const SettingsPanel = ({
+  settings,
+  setSettings,
+  selectedItem,
+  selectedIndex,
+  totalItems,
+  updateSelectedItem,
+  mode,
+  onDelete,
+  projectName,
+  setProjectName
+}) => {
 
   // 選択中のアイテムがあればそれの設定、なければ現在のツールの設定を表示
   const currentSettings = selectedItem ? selectedItem : settings;
   const isEditing = !!selectedItem;
 
   const handleChange = (key, value) => {
+    // スタンプのサイズ変更時、文字サイズも連動させる処理
+    if (key === 'radius') {
+      const syncEnabled = isEditing
+        ? (selectedItem.stampSyncFontSize !== false)
+        : (settings.stampSyncFontSize !== false);
+
+      if (syncEnabled) {
+        const currentRadius = isEditing ? selectedItem.radius : settings.radius;
+        const currentFontSize = isEditing
+          ? (selectedItem.stampFontSize || 24)
+          : (settings.stampFontSize || 24);
+
+        // 比率計算 (0除算回避)
+        if (currentRadius > 0) {
+          const scale = value / currentRadius;
+          const newFontSize = Math.max(6, Math.round(currentFontSize * scale));
+
+          if (isEditing) {
+            updateSelectedItem(selectedItem.id, { [key]: value, stampFontSize: newFontSize });
+          } else {
+            setSettings(prev => ({ ...prev, [key]: value, stampFontSize: newFontSize }));
+          }
+          return;
+        }
+      }
+    }
+
     if (isEditing) {
       updateSelectedItem(selectedItem.id, { [key]: value });
     } else {
@@ -413,6 +451,33 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
           )}
 
           {isEditing && (
+            <div style={{ display: 'flex', alignItems: 'center', marginRight: '5px', gap: '3px', paddingRight: '8px', borderRight: '1px solid #ddd' }}>
+              <RotateCw size={12} color="#888" />
+              <span style={{ fontSize: '11px', color: '#666', width: '24px', textAlign: 'right' }}>
+                {Math.round(selectedItem.rotation || 0)}°
+              </span>
+              {(Math.round(selectedItem.rotation || 0) !== 0) && (
+                <Tooltip text="回転をリセット">
+                  <button
+                    onClick={() => updateSelectedItem(selectedItem.id, { rotation: 0 })}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      color: '#005a9c',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <RotateCcw size={12} />
+                  </button>
+                </Tooltip>
+              )}
+            </div>
+          )}
+
+          {isEditing && (
             <button
               onClick={onDelete}
               style={{
@@ -430,6 +495,9 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
           )}
         </div>
       </div>
+
+
+
 
       {(mode === 'stamp' || (selectedItem && selectedItem.type === 'stamp')) && (
         <div className="settings-group">
@@ -765,8 +833,8 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
             <label>文字色</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <ColorPickerPopover
-                color={currentSettings.fill || '#000000'} // Text uses 'fill' for color
-                onChange={(newColor) => handleChange('fill', newColor)}
+                color={isEditing ? (selectedItem.fill || '#000000') : (settings.color || '#FF0000')}
+                onChange={(newColor) => handleChange(isEditing ? 'fill' : 'color', newColor)}
               />
             </div>
           </div>

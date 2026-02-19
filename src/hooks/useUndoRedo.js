@@ -31,10 +31,13 @@ const useUndoRedo = (initialState) => {
   };
 
   const set = (newPresent) => {
-    if (newPresent === present) return;
+    const nextState = newPresent instanceof Function ? newPresent(present) : newPresent;
+
+    // Deep compare or simple reference check? Reference check is standard.
+    if (nextState === present) return;
 
     setPast([...past, present]);
-    setPresent(newPresent);
+    setPresent(nextState);
     setFuture([]);
   };
 

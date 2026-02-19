@@ -46,15 +46,23 @@ const LineItem = ({ item, isSelected, onSelect, onChange }) => {
                         stroke="#4CAF50" // Green for Start
                         strokeWidth={2}
                         draggable
+                        onDragStart={(e) => {
+                            e.cancelBubble = true; // 親Groupへのドラッグ伝播を防止
+                        }}
                         onDragMove={(e) => {
+                            e.cancelBubble = true;
+                            const node = e.target;
                             const newPoints = [...item.points];
-                            newPoints[0] = e.target.x();
-                            newPoints[1] = e.target.y();
+                            newPoints[0] = node.x();
+                            newPoints[1] = node.y();
 
                             onChange({
                                 ...item,
                                 points: newPoints
                             });
+                        }}
+                        onDragEnd={(e) => {
+                            e.cancelBubble = true; // 親GroupのonDragEndが発火しないようにする
                         }}
                     />
 
@@ -67,15 +75,23 @@ const LineItem = ({ item, isSelected, onSelect, onChange }) => {
                         stroke="#F44336" // Red for End
                         strokeWidth={2}
                         draggable
+                        onDragStart={(e) => {
+                            e.cancelBubble = true;
+                        }}
                         onDragMove={(e) => {
+                            e.cancelBubble = true;
+                            const node = e.target;
                             const newPoints = [...item.points];
-                            newPoints[2] = e.target.x();
-                            newPoints[3] = e.target.y();
+                            newPoints[2] = node.x();
+                            newPoints[3] = node.y();
 
                             onChange({
                                 ...item,
                                 points: newPoints
                             });
+                        }}
+                        onDragEnd={(e) => {
+                            e.cancelBubble = true;
                         }}
                     />
                 </>

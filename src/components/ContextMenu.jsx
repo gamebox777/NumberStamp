@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 
-const ContextMenu = ({ visible, x, y, hasSelection, hasClipboard, onCopy, onPaste, onDelete, onClose }) => {
+const ContextMenu = ({ visible, x, y, hasSelection, hasClipboard, onCopy, onPaste, onDelete, onClose, onZOrder }) => {
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -27,6 +28,28 @@ const ContextMenu = ({ visible, x, y, hasSelection, hasClipboard, onCopy, onPast
 
     const menuItems = [
         {
+            label: '重ね順(A)',
+            disabled: !hasSelection,
+            children: [
+                {
+                    label: '最前面へ',
+                    onClick: () => { onZOrder('front'); onClose(); }
+                },
+                {
+                    label: '前面へ',
+                    onClick: () => { onZOrder('forward'); onClose(); }
+                },
+                {
+                    label: '背面へ',
+                    onClick: () => { onZOrder('backward'); onClose(); }
+                },
+                {
+                    label: '最背面へ',
+                    onClick: () => { onZOrder('back'); onClose(); }
+                }
+            ]
+        },
+        {
             label: 'コピー',
             shortcut: 'Ctrl+C',
             disabled: !hasSelection,
@@ -47,28 +70,62 @@ const ContextMenu = ({ visible, x, y, hasSelection, hasClipboard, onCopy, onPast
         }
     ];
 
-    return (
+    return ReactDOM.createPortal(
         <div
             ref={menuRef}
             className="context-menu"
-            style={{ left: x, top: y }}
+            style={{ left: x, top: y, position: 'fixed' }}
+            onMouseDown={(e) => e.stopPropagation()}
         >
             {menuItems.map((item, index) => {
                 if (item.type === 'separator') {
                     return <div key={index} className="context-menu-separator" />;
                 }
+
+                const hasChildren = item.children && item.children.length > 0;
+
                 return (
                     <div
                         key={index}
                         className={`context-menu-item ${item.disabled ? 'disabled' : ''}`}
-                        onClick={item.disabled ? undefined : item.onClick}
+                        onClick={(e) => {
+                            if (item.disabled) return;
+                            if (hasChildren) {
+                                if (item.onClick) item.onClick();
+                                return;
+                            }
+                            item.onClick();
+                        }}
                     >
                         <span className="context-menu-label">{item.label}</span>
-                        <span className="context-menu-shortcut">{item.shortcut}</span>
+                        {item.shortcut && <span className="context-menu-shortcut">{item.shortcut}</span>}
+                        {hasChildren && <span className="context-menu-arrow">▶</span>}
+
+                        {hasChildren && (
+                            <div className="context-menu-submenu">
+                                {item.children.map((child, childIndex) => (
+                                    <div
+                                        key={childIndex}
+                                        className={`context-menu-item ${child.disabled ? 'disabled' : ''}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent parent click
+                                            if (child.disabled) return;
+                                            if (child.onClick) {
+                                                child.onClick();
+                                            }
+                                        }}
+                                    >
+                                        <span className="context-menu-label">{child.label}</span>
+                                        {child.shortcut && <span className="context-menu-shortcut">{child.shortcut}</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 );
             })}
-        </div>
+        </div>,
+        document.body
     );
 };
 

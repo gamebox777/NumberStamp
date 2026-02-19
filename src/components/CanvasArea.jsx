@@ -652,34 +652,41 @@ const CanvasArea = React.forwardRef(({
           </Layer>
         </Stage>
       ) : (
-        <div style={{ textAlign: 'center', color: '#666', padding: '40px 20px' }}>
-          <p>画像を読み込んでください</p>
-          <p>(ドラッグ＆ドロップまたはツールバーから)</p>
-          <div style={{ marginTop: '24px', borderTop: '1px solid #ccc', paddingTop: '20px' }}>
-            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '12px', color: '#444' }}>キャンバスを作成</p>
+        <div style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '60px 20px' }}>
+          <div style={{ width: '56px', height: '56px', margin: '0 auto 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+          </div>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 4px' }}>画像を読み込んでください</p>
+          <p style={{ fontSize: '12px', margin: '0 0 28px', color: 'var(--color-text-muted)' }}>(ドラッグ&ドロップまたはツールバーから)</p>
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '24px' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '14px', color: 'var(--color-text)' }}>キャンバスを作成</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', maxWidth: '320px', margin: '0 auto' }}>
               {CANVAS_PRESETS.map((preset) => (
                 <button
                   key={preset.label}
                   onClick={() => onCreateCanvas && onCreateCanvas(preset.width, preset.height)}
                   style={{
-                    padding: '10px 8px',
-                    border: '1px solid #bbb',
-                    borderRadius: '6px',
-                    backgroundColor: '#fff',
+                    padding: '12px 8px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--color-surface)',
                     cursor: 'pointer',
                     fontSize: '13px',
-                    color: '#333',
-                    transition: 'background-color 0.15s, border-color 0.15s',
+                    color: 'var(--color-text)',
+                    transition: 'all var(--transition-fast)',
                   }}
-                  onMouseEnter={(e) => { e.target.style.backgroundColor = '#e8f0fe'; e.target.style.borderColor = '#4a90d9'; }}
-                  onMouseLeave={(e) => { e.target.style.backgroundColor = '#fff'; e.target.style.borderColor = '#bbb'; }}
+                  onMouseEnter={(e) => { e.target.style.backgroundColor = 'var(--color-primary-light)'; e.target.style.borderColor = 'var(--color-primary)'; e.target.style.color = 'var(--color-primary)'; }}
+                  onMouseLeave={(e) => { e.target.style.backgroundColor = 'var(--color-surface)'; e.target.style.borderColor = 'var(--color-border)'; e.target.style.color = 'var(--color-text)'; }}
                 >
-                  <div style={{ fontWeight: 'bold' }}>{preset.label}</div>
-                  <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>{preset.width} × {preset.height}</div>
+                  <div style={{ fontWeight: 600 }}>{preset.label}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>{preset.width} × {preset.height}</div>
                 </button>
               ))}
             </div>
+          </div>
+        </div>
           </div>
         </div>
       )}

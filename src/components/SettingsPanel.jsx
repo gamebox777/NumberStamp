@@ -646,7 +646,7 @@ const SettingsPanel = ({
                 <div
                   className={`color-option ${currentSettings.fill === 'transparent' ? 'selected' : ''}`}
                   style={{
-                    width: '24px', height: '24px', border: '1px solid #ccc',
+                    width: '24px', height: '24px', border: '1px solid var(--color-border)',
                     background: 'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)',
                     backgroundSize: '8px 8px',
                     backgroundPosition: '0 0, 4px 4px',

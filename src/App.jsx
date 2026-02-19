@@ -728,19 +728,21 @@ function App() {
         <div style={{
           position: 'fixed',
           top: '10px',
-          left: '70px', // Right of toolbar
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          color: '#00ff00',
-          padding: '10px',
-          borderRadius: '5px',
+          left: '70px',
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          backdropFilter: 'blur(8px)',
+          color: '#4ade80',
+          padding: '12px',
+          borderRadius: 'var(--radius-lg)',
           zIndex: 9999,
           pointerEvents: 'none',
-          fontFamily: 'monospace',
-          fontSize: '12px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-          maxWidth: '300px'
+          fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+          fontSize: '11px',
+          boxShadow: 'var(--shadow-lg)',
+          maxWidth: '300px',
+          border: '1px solid rgba(74, 222, 128, 0.2)'
         }}>
-          <div style={{ borderBottom: '1px solid #00ff00', marginBottom: '5px', fontWeight: 'bold' }}>=== Developer Mode ===</div>
+          <div style={{ borderBottom: '1px solid rgba(74, 222, 128, 0.3)', marginBottom: '6px', paddingBottom: '4px', fontWeight: 600, fontSize: '12px' }}>=== Developer Mode ===</div>
           <div>Mouse: ({mousePos.x}, {mousePos.y})</div>
           <div>Zoom: {Math.round(scale * 100)}%</div>
           <div>Mode: {mode}</div>
@@ -751,8 +753,8 @@ function App() {
             const index = items.findIndex(i => i.id === selectedIds[0]);
             if (!item) return null;
             return (
-              <div style={{ marginTop: '5px', borderTop: '1px solid #555', paddingTop: '5px' }}>
-                <div style={{ color: '#ffff00' }}>[Selected Item]</div>
+              <div style={{ marginTop: '6px', borderTop: '1px solid rgba(74, 222, 128, 0.2)', paddingTop: '6px' }}>
+                <div style={{ color: '#facc15', fontWeight: 600 }}>[Selected Item]</div>
                 <div>ID: {item.id.slice(0, 8)}...</div>
                 <div>Type: {item.type}</div>
                 <div>Z-Order: {index}</div>
@@ -765,8 +767,8 @@ function App() {
             );
           })()}
           {selectedIds.length > 1 && (
-            <div style={{ marginTop: '5px', borderTop: '1px solid #555', paddingTop: '5px' }}>
-              <div style={{ color: '#ffff00' }}>[Multi Selection]</div>
+            <div style={{ marginTop: '6px', borderTop: '1px solid rgba(74, 222, 128, 0.2)', paddingTop: '6px' }}>
+              <div style={{ color: '#facc15', fontWeight: 600 }}>[Multi Selection]</div>
               <div>Count: {selectedIds.length}</div>
             </div>
           )}

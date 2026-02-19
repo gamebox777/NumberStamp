@@ -6,6 +6,8 @@
 
 ### <img src="docs/images/gamebox.svg" height="50" alt="GameBox"> ブログ: <a href="https://unitygamebox.com/" target="_blank" rel="noopener noreferrer">https://unitygamebox.com/</a>
 
+### 🐛 不具合報告・要望はここに: <a href="https://github.com/gamebox777/NumberStamp/issues" target="_blank" rel="noopener noreferrer">https://github.com/gamebox777/NumberStamp/issues</a>
+
 ## **概要**
 <p style="font-size: 1.3em;">画像に連番スタンプ・矩形・テキスト・ペン・矢印等の注釈を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebアプリケーション</p>
 
@@ -188,6 +190,8 @@ npm run build
 
 <details>
 
+- **v1.5.1 (2026-02-19)**:
+    - 🐛 README.mdに不具合報告・要望へのリンクを追加
 - **v1.5.0 (2026-02-19)**:
     - 🔢 スタンプ(Stamp)ツールの設定を強化
     - 形状サイズと文字サイズを個別に調整可能に

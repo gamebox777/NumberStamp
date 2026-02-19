@@ -4,7 +4,10 @@
 
 ### 🚀 実行URL: <a href="https://number-stamp.vercel.app/" target="_blank" rel="noopener noreferrer">https://number-stamp.vercel.app/</a>
 
-画像に連番付きのスタンプ（丸印・角丸四角）や矢印、矩形（枠線）を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebツールです。
+### <img src="docs/images/gamebox.svg" height="50" alt="GameBox"> ブログ: <a href="https://unitygamebox.com/" target="_blank" rel="noopener noreferrer">https://unitygamebox.com/</a>
+
+## **概要**
+画像に連番スタンプ・矩形・テキスト・ペン・矢印等の注釈を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebアプリケーション
 
 <img src="docs/images/numstamp_export.jpg" width="75%" alt="アプリ概要">
 
@@ -66,8 +69,6 @@
 ### 🔲 矩形 (Rectangle) モード
 ドラッグして矩形（四角い枠）を描画し、注目させたい箇所を強調します。
 
-<img src="docs/images/mode_rectangle.png" width="50%" alt="Rectangle Mode">
-
 - **描画方法**: キャンバス上でドラッグすると、その範囲に矩形が作成されます。
 - **テキスト入力**: 作成した矩形を選択し、右側の設定パネルでテキストを入力すると、枠内に文字を表示できます。
 - **スタイル設定**: 枠線の色、太さ、塗りつぶしの有無、破線スタイルなどを自由に調整できます。
@@ -76,8 +77,6 @@
 
 ### 🔤 テキスト (Text) モード
 画像上の任意の位置にテキストコメントを追加します。
-
-<img src="docs/images/mode_text.png" width="50%" alt="Text Mode">
 
 - **配置**: クリックした位置にデフォルトまたは設定済みのテキストを配置します。
 - **編集**: 配置後、設定パネルからテキストの内容、フォントサイズ、色、フォントファミリーを変更できます。
@@ -88,8 +87,6 @@
 ### ✒️ ペン (Pen) モード
 フリーハンドで線を描画します。
 
-<img src="docs/images/mode_pen.png" width="50%" alt="Pen Mode">
-
 - **描画**: ドラッグして自由に線を描けます。注釈や強調に利用できます。
 - **設定**: 色、太さ、不透明度を変更可能です。
 
@@ -97,8 +94,6 @@
 
 ### 📏 直線・矢印 (Line/Arrow) モード
 任意の直線や矢印を描画するツールです。
-
-<img src="docs/images/mode_line.png" width="50%" alt="Line Mode">
 
 - **描画**: ドラッグして直線を描画します。
 - **編集**: 選択中に表示される始点・終点のハンドルを操作して、位置や角度を調整できます。

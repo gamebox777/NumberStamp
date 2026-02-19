@@ -1,13 +1,13 @@
 <img src="docs/images/Gemini_Generated_Image_1gc5g31gc5g31gc5.jpg" width="100%" alt="Banner">
 
-![Number Stamp](https://capsule-render.vercel.app/api?type=rect&color=003366&height=60&section=header&text=Number%20Stamp&fontSize=28&fontColor=ffffff)
+![Number Stamp](https://capsule-render.vercel.app/api?type=rect&color=003366&height=60&section=header&text=Number%20Stamp%20(ナンバースタンプ)&fontSize=28&fontColor=ffffff)
 
 ### 🚀 実行URL: <a href="https://number-stamp.vercel.app/" target="_blank" rel="noopener noreferrer">https://number-stamp.vercel.app/</a>
 
 ### <img src="docs/images/gamebox.svg" height="50" alt="GameBox"> ブログ: <a href="https://unitygamebox.com/" target="_blank" rel="noopener noreferrer">https://unitygamebox.com/</a>
 
 ## **概要**
-画像に連番スタンプ・矩形・テキスト・ペン・矢印等の注釈を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebアプリケーション
+<p style="font-size: 1.3em;">画像に連番スタンプ・矩形・テキスト・ペン・矢印等の注釈を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebアプリケーション</p>
 
 <img src="docs/images/numstamp_export.jpg" width="75%" alt="アプリ概要">
 

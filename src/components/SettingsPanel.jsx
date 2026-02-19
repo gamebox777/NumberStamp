@@ -155,14 +155,15 @@ const ColorPickerPopover = ({ color, onChange }) => {
         style={{
           width: '30px',
           height: '30px',
-          border: '1px solid #ccc',
+          border: '1px solid var(--color-border)',
           cursor: 'pointer',
-          borderRadius: '4px',
+          borderRadius: 'var(--radius-sm)',
+          transition: 'border-color var(--transition-fast)',
           ...transparentPattern
         }}
         onClick={handleToggle}
       >
-        <div style={{ width: '100%', height: '100%', backgroundColor: color, borderRadius: '4px' }}></div>
+        <div style={{ width: '100%', height: '100%', backgroundColor: color, borderRadius: 'var(--radius-sm)' }}></div>
       </div>
 
       {isOpen && (
@@ -174,16 +175,16 @@ const ColorPickerPopover = ({ color, onChange }) => {
             zIndex: 10000,
             top: popoverPos.top,
             left: popoverPos.left,
-            backgroundColor: 'white',
-            padding: '10px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-            border: '1px solid #ddd'
+            backgroundColor: 'var(--color-surface)',
+            padding: '12px',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-lg)',
+            border: '1px solid var(--color-border)'
           }}
         >
           {/* 最近使った色の履歴 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#888', whiteSpace: 'nowrap' }}>履歴:</span>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', fontWeight: 500 }}>履歴:</span>
             {colorHistory.length > 0 ? (
               colorHistory.map((histColor, idx) => (
                 <div
@@ -193,16 +194,16 @@ const ColorPickerPopover = ({ color, onChange }) => {
                     width: '24px',
                     height: '24px',
                     backgroundColor: histColor,
-                    border: color === histColor ? '2px solid #333' : '1px solid #ccc',
+                    border: color === histColor ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                     cursor: 'pointer',
-                    borderRadius: '4px',
+                    borderRadius: 'var(--radius-sm)',
                     flexShrink: 0,
                   }}
                   title={histColor}
                 />
               ))
             ) : (
-              <span style={{ fontSize: '11px', color: '#bbb' }}>なし</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>なし</span>
             )}
           </div>
 
@@ -216,9 +217,10 @@ const ColorPickerPopover = ({ color, onChange }) => {
                   width: '24px',
                   height: '24px',
                   backgroundColor: preset,
-                  border: color === preset ? '2px solid #333' : '1px solid #ccc',
+                  border: color === preset ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                   cursor: 'pointer',
-                  borderRadius: '4px'
+                  borderRadius: 'var(--radius-sm)',
+                  transition: 'transform var(--transition-fast)'
                 }}
                 title={preset}
               />
@@ -233,10 +235,10 @@ const ColorPickerPopover = ({ color, onChange }) => {
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
-              padding: '5px 8px',
-              borderRadius: '4px',
-              border: '1px solid #ddd',
-              backgroundColor: showPicker ? '#f0f0f0' : '#fafafa',
+              padding: '6px 10px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: showPicker ? 'var(--color-surface-hover)' : 'var(--color-surface-alt)',
               marginBottom: showPicker ? '8px' : '0',
               userSelect: 'none',
               transition: 'background-color 0.15s',
@@ -260,7 +262,7 @@ const ColorPickerPopover = ({ color, onChange }) => {
                 </linearGradient>
               </defs>
             </svg>
-            <span style={{ fontSize: '12px', color: '#555' }}>
+            <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
               {showPicker ? '▲ カラーパレットを閉じる' : '▼ カラーパレットを開く'}
             </span>
           </div>
@@ -390,17 +392,18 @@ const SettingsPanel = ({
             onChange={(e) => setProjectName(e.target.value)}
             style={{
               width: '100%',
-              padding: '5px',
+              padding: '7px 10px',
               marginBottom: '5px',
-              border: projectValidation.isValid ? '1px solid #888' : '2px solid #ff4d4d',
-              backgroundColor: 'white',
-              color: 'black',
-              borderRadius: '2px'
+              border: projectValidation.isValid ? '1px solid var(--color-border)' : '2px solid var(--color-danger)',
+              backgroundColor: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '12px'
             }}
             placeholder="project-name"
           />
           {!projectValidation.isValid && (
-            <div style={{ color: '#ff4d4d', fontSize: '11px', marginBottom: '5px' }}>
+            <div style={{ color: 'var(--color-danger)', fontSize: '11px', marginBottom: '5px', fontWeight: 500 }}>
               {projectValidation.error}
             </div>
           )}
@@ -408,14 +411,16 @@ const SettingsPanel = ({
       )}
 
       <div style={{
-        padding: '10px',
-        marginBottom: '15px',
-        backgroundColor: '#e8f4fc',
-        border: '1px solid #b6e0fe',
-        borderRadius: '4px',
+        padding: '10px 12px',
+        marginBottom: '16px',
+        backgroundColor: 'var(--color-primary-light)',
+        border: '1px solid rgba(37, 99, 235, 0.15)',
+        borderRadius: 'var(--radius-md)',
         textAlign: 'center',
-        fontWeight: 'bold',
-        color: '#005a9c'
+        fontWeight: 600,
+        color: 'var(--color-primary)',
+        fontSize: '12px',
+        letterSpacing: '-0.01em'
       }}>
         現在のモード: {
           mode === 'select' ? '選択 (Select)' :
@@ -434,15 +439,16 @@ const SettingsPanel = ({
               <button
                 onClick={handleReset}
                 style={{
-                  backgroundColor: '#f0f0f0',
-                  color: '#333',
-                  border: '1px solid #ccc',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)',
                   padding: '5px',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--radius-sm)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  transition: 'all var(--transition-fast)'
                 }}
               >
                 <RotateCcw size={14} />
@@ -451,9 +457,9 @@ const SettingsPanel = ({
           )}
 
           {isEditing && (
-            <div style={{ display: 'flex', alignItems: 'center', marginRight: '5px', gap: '3px', paddingRight: '8px', borderRight: '1px solid #ddd' }}>
-              <RotateCw size={12} color="#888" />
-              <span style={{ fontSize: '11px', color: '#666', width: '24px', textAlign: 'right' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginRight: '5px', gap: '3px', paddingRight: '8px', borderRight: '1px solid var(--color-border)' }}>
+              <RotateCw size={12} color="var(--color-text-muted)" />
+              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', width: '24px', textAlign: 'right' }}>
                 {Math.round(selectedItem.rotation || 0)}°
               </span>
               {(Math.round(selectedItem.rotation || 0) !== 0) && (
@@ -465,7 +471,7 @@ const SettingsPanel = ({
                       border: 'none',
                       cursor: 'pointer',
                       padding: '2px',
-                      color: '#005a9c',
+                      color: 'var(--color-primary)',
                       display: 'flex',
                       alignItems: 'center'
                     }}
@@ -481,13 +487,15 @@ const SettingsPanel = ({
             <button
               onClick={onDelete}
               style={{
-                backgroundColor: '#ff4d4d',
+                backgroundColor: 'var(--color-danger)',
                 color: 'white',
                 border: 'none',
-                padding: '5px 10px',
-                borderRadius: '4px',
+                padding: '5px 12px',
+                borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer',
-                fontSize: '12px'
+                fontSize: '12px',
+                fontWeight: 500,
+                transition: 'background-color var(--transition-fast)'
               }}
             >
               削除
@@ -580,7 +588,7 @@ const SettingsPanel = ({
                 color={currentSettings.color}
                 onChange={(newColor) => handleChange('color', newColor)}
               />
-              <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.color}</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{currentSettings.color}</span>
             </div>
           </div>
           <div className="settings-row">
@@ -590,7 +598,7 @@ const SettingsPanel = ({
                 color={isEditing ? (selectedItem.stampTextColor || '#FFFFFF') : (settings.stampTextColor || '#FFFFFF')}
                 onChange={(newColor) => handleChange(isEditing ? 'stampTextColor' : 'stampTextColor', newColor)}
               />
-              <span style={{ fontSize: '12px', color: '#666' }}>{isEditing ? (selectedItem.stampTextColor || '#FFFFFF') : (settings.stampTextColor || '#FFFFFF')}</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{isEditing ? (selectedItem.stampTextColor || '#FFFFFF') : (settings.stampTextColor || '#FFFFFF')}</span>
             </div>
           </div>
         </div>
@@ -619,7 +627,7 @@ const SettingsPanel = ({
                 color={currentSettings.color || 'red'}
                 onChange={(newColor) => handleChange('color', newColor)}
               />
-              <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.color}</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{currentSettings.color}</span>
             </div>
           </div>
 
@@ -631,7 +639,7 @@ const SettingsPanel = ({
                 color={currentSettings.fill || 'rgba(0,0,0,0)'}
                 onChange={(newColor) => handleChange('fill', newColor)}
               />
-              <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.fill}</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{currentSettings.fill}</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '10px' }}>
               <Tooltip text="透明">
@@ -659,7 +667,7 @@ const SettingsPanel = ({
               <textarea
                 value={isEditing ? (selectedItem.text || '') : (settings.rectText || '')}
                 onChange={(e) => handleChange(isEditing ? 'text' : 'rectText', e.target.value)}
-                style={{ width: '100%', height: '60px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                style={{ width: '100%', height: '60px', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', fontSize: '12px', color: 'var(--color-text)', backgroundColor: 'var(--color-surface)' }}
                 placeholder="テキストを入力..."
               />
             </div>
@@ -709,7 +717,7 @@ const SettingsPanel = ({
             <div className="settings-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '5px' }}>
               <label>配置</label>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
+                <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
                   {['left', 'center', 'right'].map((align) => (
                     <div
                       key={align}
@@ -717,7 +725,8 @@ const SettingsPanel = ({
                       style={{
                         padding: '5px',
                         cursor: 'pointer',
-                        backgroundColor: (isEditing ? (selectedItem.align || 'center') : (settings.rectAlign || 'center')) === align ? '#e0e0e0' : 'transparent',
+                        backgroundColor: (isEditing ? (selectedItem.align || 'center') : (settings.rectAlign || 'center')) === align ? 'var(--color-primary-light)' : 'transparent',
+                        color: (isEditing ? (selectedItem.align || 'center') : (settings.rectAlign || 'center')) === align ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                         display: 'flex', alignItems: 'center'
                       }}
                       title={align}
@@ -729,7 +738,7 @@ const SettingsPanel = ({
                   ))}
                 </div>
 
-                <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
+                <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
                   {['top', 'middle', 'bottom'].map((valign) => (
                     <div
                       key={valign}
@@ -737,7 +746,8 @@ const SettingsPanel = ({
                       style={{
                         padding: '5px',
                         cursor: 'pointer',
-                        backgroundColor: (isEditing ? (selectedItem.verticalAlign || 'middle') : (settings.rectVerticalAlign || 'middle')) === valign ? '#e0e0e0' : 'transparent',
+                        backgroundColor: (isEditing ? (selectedItem.verticalAlign || 'middle') : (settings.rectVerticalAlign || 'middle')) === valign ? 'var(--color-primary-light)' : 'transparent',
+                        color: (isEditing ? (selectedItem.verticalAlign || 'middle') : (settings.rectVerticalAlign || 'middle')) === valign ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                         display: 'flex', alignItems: 'center'
                       }}
                       title={valign}
@@ -753,14 +763,16 @@ const SettingsPanel = ({
 
             <div className="settings-row">
               <label>折り返し</label>
-              <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
+              <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
                 <div
                   onClick={() => handleChange(isEditing ? 'wrap' : 'rectTextWrap', 'none')}
                   style={{
                     padding: '5px 10px',
                     cursor: 'pointer',
-                    backgroundColor: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'none' ? '#e0e0e0' : 'transparent',
-                    display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px'
+                    backgroundColor: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'none' ? 'var(--color-primary-light)' : 'transparent',
+                    color: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'none' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                    display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px',
+                    transition: 'all var(--transition-fast)'
                   }}
                   title="はみ出す"
                 >
@@ -771,8 +783,10 @@ const SettingsPanel = ({
                   style={{
                     padding: '5px 10px',
                     cursor: 'pointer',
-                    backgroundColor: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'fit' ? '#e0e0e0' : 'transparent',
-                    display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', borderLeft: '1px solid #ccc'
+                    backgroundColor: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'fit' ? 'var(--color-primary-light)' : 'transparent',
+                    color: (isEditing ? (selectedItem.wrap || 'none') : (settings.rectTextWrap || 'none')) === 'fit' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                    display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', borderLeft: '1px solid var(--color-border)',
+                    transition: 'all var(--transition-fast)'
                   }}
                   title="収める"
                 >
@@ -793,7 +807,7 @@ const SettingsPanel = ({
             <textarea
               value={currentSettings.text || ''}
               onChange={(e) => handleChange('text', e.target.value)}
-              style={{ width: '100%', height: '60px', padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{ width: '100%', height: '60px', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', fontSize: '12px', color: 'var(--color-text)', backgroundColor: 'var(--color-surface)' }}
             />
           </div>
 

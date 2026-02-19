@@ -339,7 +339,7 @@ function App() {
     setItems(items.map(item => item.id === id ? { ...item, ...newAttrs } : item));
 
     // 設定パネルからの変更を現在の設定にも反映させるか？
-    // 選択中のアイテムの設定を変更した場合、次に追加するアイテムの設定もそれに合わせるかどうか。
+    // 選択中のアイテムの設定を変更した場合、次に追加するアイテムの設定もそれに���わせるかどうか。
     // 通常は合わせない方が使いやすいが、要望次第。今回は合わせない。
   };
 
@@ -527,7 +527,7 @@ function App() {
         />
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div ref={canvasWrapperRef} className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', backgroundColor: '#e0e0e0', padding: '20px', position: 'relative' }}
+          <div ref={canvasWrapperRef} className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', padding: '24px', position: 'relative' }}
             onMouseDown={(e) => {
               // 左クリックで右クリックメニューを閉じる（Konva canvas内のクリックもここで検知）
               if (e.button === 0 && contextMenu.visible) {
@@ -580,14 +580,19 @@ function App() {
           {imageSrc && (
             <div style={{
               position: 'absolute',
-              bottom: '10px',
+              bottom: '12px',
               left: '20px',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-              padding: '5px 10px',
-              borderRadius: '5px',
-              fontSize: '12px',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(8px)',
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '11px',
+              fontWeight: 500,
+              color: 'var(--color-text-secondary)',
               pointerEvents: 'none',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--color-border)',
+              letterSpacing: '0.01em'
             }}>
               {imageName} ({imageSize.width} x {imageSize.height})
             </div>
@@ -613,20 +618,21 @@ function App() {
               style={{
                 width: '100%',
                 height: '100%',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ccc',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
                 borderRight: 'none',
-                borderRadius: '4px 0 0 4px',
+                borderRadius: 'var(--radius-sm) 0 0 var(--radius-sm)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '10px',
-                color: '#666',
-                boxShadow: '-1px 0 2px rgba(0,0,0,0.1)'
+                color: 'var(--color-text-muted)',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all var(--transition-fast)'
               }}
             >
-              {isSidebarOpen ? '▶' : '◀'}
+              {isSidebarOpen ? '\u25B6' : '\u25C0'}
             </button>
           </Tooltip>
           <div className="right-sidebar"
@@ -635,8 +641,8 @@ function App() {
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
-              borderLeft: '1px solid #ccc',
-              backgroundColor: isSidebarOpen ? '#f8f8f8' : '#e8e8e8',
+              borderLeft: '1px solid var(--color-border)',
+              backgroundColor: isSidebarOpen ? 'var(--color-surface)' : 'var(--color-surface-alt)',
               width: isSidebarOpen ? '280px' : '30px',
               transition: 'width 0.3s ease, background-color 0.3s ease',
               overflow: 'hidden',
@@ -658,8 +664,8 @@ function App() {
               />
 
               {/* Zoom Control Compact */}
-              <div style={{ padding: '10px', borderTop: '1px solid #ccc', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>Zoom: {Math.round(scale * 100)}%</span>
+              <div style={{ padding: '10px 16px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface-alt)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '10px', whiteSpace: 'nowrap', color: 'var(--color-text-secondary)', fontWeight: 500 }}>Zoom: {Math.round(scale * 100)}%</span>
                 <input
                   type="range"
                   min="0.1"
@@ -667,32 +673,34 @@ function App() {
                   step="0.1"
                   value={scale}
                   onChange={(e) => setScale(parseFloat(e.target.value))}
-                  style={{ flex: 1, margin: '0 5px' }}
+                  style={{ flex: 1, margin: '0 4px', accentColor: 'var(--color-primary)' }}
                 />
                 <div style={{ display: 'flex', gap: '2px' }}>
-                  <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>-</button>
-                  <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>1:1</button>
-                  <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>+</button>
+                  <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '3px 8px', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}>-</button>
+                  <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '3px 8px', cursor: 'pointer', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>1:1</button>
+                  <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '3px 8px', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}>+</button>
                 </div>
               </div>
 
               {/* Banner at bottom */}
-              <div className="banner-container" style={{ padding: '10px', textAlign: 'center', position: 'relative', borderTop: '1px solid #ccc' }}>
+              <div className="banner-container" style={{ padding: '12px', textAlign: 'center', position: 'relative', borderTop: '1px solid var(--color-border)' }}>
                 <a href="https://github.com/gamebox777/NumberStamp/blob/main/README.md" target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none' }}>
-                  <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block', border: '1px solid #ccc' }} />
+                  <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: 'var(--radius-md)', display: 'block', border: '1px solid var(--color-border)' }} />
                 </a>
                 <div style={{
                   position: 'absolute',
-                  top: '15px',
-                  right: '15px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  top: '17px',
+                  right: '17px',
+                  backgroundColor: 'rgba(30, 41, 59, 0.7)',
+                  backdropFilter: 'blur(4px)',
                   color: 'white',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
                   fontSize: '10px',
-                  fontWeight: 'bold',
+                  fontWeight: 600,
                   pointerEvents: 'auto',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  letterSpacing: '0.02em'
                 }}
                   onClick={(e) => {
                     e.preventDefault();
@@ -706,9 +714,9 @@ function App() {
 
 
               <div
-                style={{ padding: '5px', textAlign: 'center', fontSize: '10px', color: '#666', backgroundColor: '#f0f0f0', borderTop: '1px solid #ddd' }}
+                style={{ padding: '8px', textAlign: 'center', fontSize: '11px', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-alt)', borderTop: '1px solid var(--color-border)' }}
               >
-                <a href="https://github.com/gamebox777/NumberStamp/blob/main/README.md" target="_blank" rel="noopener noreferrer" style={{ color: '#666', textDecoration: 'none' }}>
+                <a href="https://github.com/gamebox777/NumberStamp/blob/main/README.md" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-text-secondary)', textDecoration: 'none', fontWeight: 500, transition: 'color var(--transition-fast)' }}>
                   マニュアル(GitHub)
                 </a>
               </div>

@@ -67,12 +67,12 @@ if (!fs.existsSync(outputDir)) {
     if (await stampBtn.count() > 0) {
         await stampBtn.click();
     }
-    
+
     // キャンバスにいくつかスタンプを押す
     await clickCanvas(300, 300);
     await clickCanvas(400, 300);
     await clickCanvas(500, 300);
-    
+
     await page.screenshot({ path: path.join(outputDir, 'mode_stamp.png') });
     console.log('Saved: mode_stamp.png');
 
@@ -98,7 +98,7 @@ if (!fs.existsSync(outputDir)) {
 
     // テキスト配置
     await clickCanvas(400, 300);
-    
+
     await page.screenshot({ path: path.join(outputDir, 'mode_text.png') });
     console.log('Saved: mode_text.png');
 
@@ -106,14 +106,14 @@ if (!fs.existsSync(outputDir)) {
     await loadApp();
     // まずスタンプを1つ置く
     await clickCanvas(300, 300);
-    
+
     // 選択モードに切り替え
     const selectBtn = page.locator('.tooltip-container', { hasText: '選択 (Select)' }).first();
     await selectBtn.click();
 
     // スタンプを選択 (300, 300)
     await clickCanvas(300, 300);
-    
+
     // ハンドルが表示されるのを待つ (少し時間がかかるかも)
     await page.waitForTimeout(500);
 
@@ -122,9 +122,9 @@ if (!fs.existsSync(outputDir)) {
     // 実装依存だが、おおよそ右側 (300+40, 300) あたりをドラッグしてみる
     // 矢印ハンドルは ArrowItem.jsx ではなく CanvasArea.jsx で renderArrowHandles で描画される
     // 位置は x + radius + 15 くらい
-    const startX = 300 + 40; 
+    const startX = 300 + 40;
     const startY = 300;
-    
+
     // ハンドルからドラッグして矢印を引く
     await page.mouse.move(startX, startY);
     await page.mouse.down();
@@ -134,6 +134,47 @@ if (!fs.existsSync(outputDir)) {
 
     await page.screenshot({ path: path.join(outputDir, 'mode_arrow.png') });
     console.log('Saved: mode_arrow.png');
+
+    // 8. ペンモード
+    await loadApp();
+    const penBtn = page.locator('.tooltip-container', { hasText: 'ペン (Pen)' }).first();
+    await penBtn.click();
+
+    // ペンで波線を描く
+    await page.mouse.move(300, 300);
+    await page.mouse.down();
+    await page.mouse.move(350, 250);
+    await page.mouse.move(400, 350);
+    await page.mouse.move(450, 250);
+    await page.mouse.move(500, 300);
+    await page.mouse.up();
+    await page.waitForTimeout(500);
+
+    await page.screenshot({ path: path.join(outputDir, 'mode_pen.png') });
+    console.log('Saved: mode_pen.png');
+
+    // 9. Lineモード
+    await loadApp();
+    const lineBtn = page.locator('.tooltip-container', { hasText: '直線・矢印 (Line/Arrow)' }).first();
+    await lineBtn.click();
+
+    // 直線を引く
+    await page.mouse.move(300, 400);
+    await page.mouse.down();
+    await page.mouse.move(600, 400);
+    await page.mouse.up();
+
+    // もう一本引く（矢印設定などを本来はしたいが、デフォルトで線が引ければOK）
+    await page.waitForTimeout(200);
+    await page.mouse.move(300, 450);
+    await page.mouse.down();
+    await page.mouse.move(600, 500);
+    await page.mouse.up();
+
+    await page.waitForTimeout(500);
+
+    await page.screenshot({ path: path.join(outputDir, 'mode_line.png') });
+    console.log('Saved: mode_line.png');
 
     await browser.close();
     console.log('All screenshots saved!');

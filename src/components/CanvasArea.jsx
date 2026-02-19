@@ -5,11 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 import StampItem from './StampItem';
 import RectangleItem from './RectangleItem';
 import ArrowItem from './ArrowItem';
+import LineItem from './LineItem';
 import TextItem from './TextItem';
+import PenItem from './PenItem';
 
-const URLImage = ({ image }) => {
+const URLImage = React.memo(({ image }) => {
   return <KonvaImage image={image} listening={false} />;
-};
+});
 
 const CanvasArea = React.forwardRef(({
   imageSrc,
@@ -24,6 +26,8 @@ const CanvasArea = React.forwardRef(({
 }, ref) => {
   const [image] = useImage(imageSrc || '');
   const [newRect, setNewRect] = useState(null); // ドラッグ中の新規矩形
+  const [newLine, setNewLine] = useState(null); // ドラッグ中の新規線
+  const [newLineItem, setNewLineItem] = useState(null); // ドラッグ中の新規直線・矢印
   const [selectionBox, setSelectionBox] = useState(null); // 範囲選択ボックス
 
   // 画像サイズに合わせてステージサイズを設定
@@ -179,6 +183,23 @@ const CanvasArea = React.forwardRef(({
       setItems([...items, newItemObj]);
       setSelectedIds([id]); // Automatically select the new text to edit it easily
       setMode('select'); // Switch back to select mode after placing text (optional, but common for text)
+    } else if (mode === 'pen' && image) {
+      // Pen Mode
+      setNewLine({
+        points: [x, y],
+        color: settings.penColor,
+        strokeWidth: settings.penWidth
+      });
+      setSelectedIds([]);
+    } else if (mode === 'line' && image) {
+      // Line Mode
+      setNewLineItem({
+        startX: x,
+        startY: y,
+        endX: x,
+        endY: y,
+      });
+      setSelectedIds([]);
     }
   };
 
@@ -211,6 +232,21 @@ const CanvasArea = React.forwardRef(({
         ...newRect,
         width: width,
         height: height
+      });
+    }
+
+    if (mode === 'pen' && newLine) {
+      setNewLine({
+        ...newLine,
+        points: [...newLine.points, x, y]
+      });
+    }
+
+    if (mode === 'line' && newLineItem) {
+      setNewLineItem({
+        ...newLineItem,
+        endX: x,
+        endY: y
       });
     }
   };
@@ -286,6 +322,54 @@ const CanvasArea = React.forwardRef(({
       }
       setNewRect(null);
     }
+
+    // Pen Mode End
+    if (mode === 'pen' && newLine) {
+      if (newLine.points.length > 2) { // 少なくとも2点以上（始点と終点、あるいは少し動いた）
+        const newItem = {
+          id: uuidv4(),
+          type: 'pen',
+          x: 0, // Lineはpointsで絶対座標を持つが、Groupでラップする場合、x,yを0基準にしてpointsを相対にするか、x,y=0でpointsを絶対にするか。
+          // ここではx,y=0でpoints絶対座標とする。移動時にGroupのx,yが変わる。
+          y: 0,
+          points: newLine.points,
+          color: newLine.color,
+          strokeWidth: newLine.strokeWidth,
+          tension: 0.5,
+          lineCap: 'round',
+          lineJoin: 'round'
+        };
+        setItems([...items, newItem]);
+        // 描画後は選択しない（連続描画のため）
+      }
+      setNewLine(null);
+    }
+
+    // Line Mode End
+    if (mode === 'line' && newLineItem) {
+      const dx = newLineItem.endX - newLineItem.startX;
+      const dy = newLineItem.endY - newLineItem.startY;
+      const length = Math.sqrt(dx * dx + dy * dy);
+
+      if (length > 5) {
+        const newItem = {
+          id: uuidv4(),
+          type: 'line',
+          x: newLineItem.startX,
+          y: newLineItem.startY,
+          points: [0, 0, dx, dy], // Start relative to x,y is 0,0. End is dx,dy
+          color: settings.lineColor,
+          strokeWidth: settings.lineWidth,
+          startArrow: settings.lineStartArrow,
+          endArrow: settings.lineEndArrow
+        };
+        setItems([...items, newItem]);
+        setSelectedIds([newItem.id]);
+      }
+      setNewLineItem(null);
+    }
+
+    setNewRect(null);
   };
 
   const handleItemSelect = (id, e) => {
@@ -360,7 +444,7 @@ const CanvasArea = React.forwardRef(({
           ref={ref}
         >
           <Layer>
-            <URLImage image={image} />
+            <URLImage image={image} key="background-image" />
 
             {/* 矢印はスタンプの下に描画したいので先に描画 */}
             {items.map((item, i) => {
@@ -415,9 +499,49 @@ const CanvasArea = React.forwardRef(({
                     onChange={handleItemChange}
                   />
                 );
+              } else if (item.type === 'pen') {
+                return (
+                  <PenItem
+                    key={item.id}
+                    item={item}
+                    isSelected={isSelected}
+                    onSelect={(e) => handleItemSelect(item.id, e)}
+                    onChange={handleItemChange}
+                  />
+                );
+              } else if (item.type === 'line') {
+                return (
+                  <LineItem
+                    key={item.id}
+                    item={item}
+                    isSelected={isSelected}
+                    onSelect={(e) => handleItemSelect(item.id, e)}
+                    onChange={handleItemChange}
+                  />
+                );
               }
               return null;
             })}
+
+            {/* ドラッグ中の新規線描画 */}
+            {newLine && (
+              <PenItem
+                item={{
+                  id: 'temp-line',
+                  type: 'pen',
+                  x: 0,
+                  y: 0,
+                  points: newLine.points,
+                  color: newLine.color,
+                  strokeWidth: newLine.strokeWidth,
+                  tension: 0.5,
+                  lineCap: 'round',
+                  lineJoin: 'round'
+                }}
+                isSelected={false}
+                listening={false} // 描画中はイベントを受け取らない
+              />
+            )}
 
             {/* ドラッグ中の新規矩形描画 */}
             {newRect && (
@@ -428,6 +552,24 @@ const CanvasArea = React.forwardRef(({
                   strokeWidth: settings.strokeWidth,
                   fill: settings.fill,
                   id: 'temp-rect'
+                }}
+                isSelected={false}
+              />
+            )}
+
+            {/* ドラッグ中の新規直線・矢印描画 */}
+            {newLineItem && (
+              <LineItem
+                item={{
+                  id: 'temp-line-item',
+                  type: 'line',
+                  x: newLineItem.startX,
+                  y: newLineItem.startY,
+                  points: [0, 0, newLineItem.endX - newLineItem.startX, newLineItem.endY - newLineItem.startY],
+                  color: settings.lineColor || '#FF0000',
+                  strokeWidth: settings.lineWidth || 5,
+                  startArrow: settings.lineStartArrow,
+                  endArrow: settings.lineEndArrow
                 }}
                 isSelected={false}
               />
@@ -474,6 +616,10 @@ const CanvasArea = React.forwardRef(({
                 }
                 return newBox;
               }}
+              // 線アイテムが選択されている場合は回転・拡縮を無効化
+              rotateEnabled={!items.some(item => selectedIds.includes(item.id) && item.type === 'line')}
+              resizeEnabled={!items.some(item => selectedIds.includes(item.id) && item.type === 'line')}
+
             // スタンプなどリサイズしたくないものがある場合の制御が必要ならここで行う
             // enabledAnchorsなどで制限可能
             />

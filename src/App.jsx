@@ -35,7 +35,15 @@ function App() {
     rectTextColor: '#000000',
     rectAlign: 'center',
     rectVerticalAlign: 'middle',
-    rectTextWrap: 'none'
+    rectAlign: 'center',
+    rectVerticalAlign: 'middle',
+    rectTextWrap: 'none',
+    penColor: 'red',
+    penWidth: 5,
+    lineColor: '#FF0000',
+    lineWidth: 5,
+    lineStartArrow: false,
+    lineEndArrow: true
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -43,22 +51,65 @@ function App() {
   const [imageName, setImageName] = useState(null);
   const [imageSize, setImageSize] = useState({ width: 800, height: 600 });
   const stageRef = useRef(null);
+  const [clipboard, setClipboard] = useState([]);
 
-  // キーボードショートカット (Undo/Redo)
+  // クリップボード操作
+  const handleCopy = () => {
+    if (selectedIds.length === 0) return;
+    const selectedItems = items.filter(item => selectedIds.includes(item.id));
+    // ディープコピーして保存（参照渡しを防ぐ）
+    setClipboard(JSON.parse(JSON.stringify(selectedItems)));
+  };
+
+  const handlePaste = () => {
+    if (clipboard.length === 0) return;
+
+    // ペースト位置のオフセット（重ならないように少しずらす）
+    const offset = 20;
+
+    const newItems = clipboard.map(item => {
+      const newItem = { ...item };
+      newItem.id = uuidv4(); // 新しいIDを生成
+      newItem.x += offset;
+      newItem.y += offset;
+      return newItem;
+    });
+
+    setItems(prevItems => [...prevItems, ...newItems]);
+    // ペーストしたアイテムを選択状態にする
+    setSelectedIds(newItems.map(item => item.id));
+  };
+
+  // キーボードショートカット (Undo/Redo, Copy/Paste)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+          case 'z':
+            if (e.shiftKey) {
+              redo();
+            } else {
+              undo();
+            }
+            e.preventDefault();
+            break;
+          case 'y':
+            redo();
+            e.preventDefault();
+            break;
+          case 'c':
+            handleCopy();
+            e.preventDefault();
+            break;
+          case 'v':
+            handlePaste();
+            e.preventDefault();
+            break;
+          default:
+            break;
         }
-        e.preventDefault();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-        redo();
-        e.preventDefault();
       }
     };
 
@@ -66,7 +117,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [undo, redo]);
+  }, [undo, redo, items, selectedIds, clipboard]); // 依存配列にitems, selectedIds, clipboardを追加
 
   // 設定のマイグレーション（機能追加時のデフォルト値補完）
   useEffect(() => {
@@ -78,7 +129,10 @@ function App() {
         rectTextColor: '#000000',
         rectAlign: 'center',
         rectVerticalAlign: 'middle',
-        rectTextWrap: 'none'
+        rectVerticalAlign: 'middle',
+        rectTextWrap: 'none',
+        penColor: 'red',
+        penWidth: 5
       };
       // キーが足りない場合のみ追加
       const missingKeys = Object.keys(defaults).filter(key => prev[key] === undefined);
@@ -137,36 +191,20 @@ function App() {
     }
   };
 
-  // ファイル保存ヘルパー (File System Access API with fallback)
-  const saveFile = async (blob, defaultName, types) => {
+  // ファイル保存ヘルパー (従来のダウンロード方式 - ブラウザの履歴に残る)
+  const saveFile = async (blob, defaultName) => {
     try {
-      if (window.showSaveFilePicker) {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: defaultName,
-          types: types
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-      } else {
-        // Fallback for browsers not supporting File System Access API
-        const filename = window.prompt('ファイル名を入力してください', defaultName);
-        if (!filename) return; // キャンセル
-
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = defaultName;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.error('Save failed:', err);
-        alert('保存に失敗しました');
-      }
+      console.error('Save failed:', err);
+      alert('保存に失敗しました');
     }
   };
 
@@ -429,25 +467,25 @@ function App() {
 
               {/* Zoom Control Compact */}
               <div style={{ padding: '10px', borderTop: '1px solid #ccc', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                 <span style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>Zoom: {Math.round(scale * 100)}%</span>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="3.0"
-                    step="0.1"
-                    value={scale}
-                    onChange={(e) => setScale(parseFloat(e.target.value))}
-                    style={{ flex: 1, margin: '0 5px' }}
-                  />
-                  <div style={{ display: 'flex', gap: '2px' }}>
-                    <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>-</button>
-                    <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>1:1</button>
-                    <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>+</button>
-                  </div>
+                <span style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>Zoom: {Math.round(scale * 100)}%</span>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="3.0"
+                  step="0.1"
+                  value={scale}
+                  onChange={(e) => setScale(parseFloat(e.target.value))}
+                  style={{ flex: 1, margin: '0 5px' }}
+                />
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  <button onClick={() => setScale(Math.max(0.1, scale - 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>-</button>
+                  <button onClick={() => setScale(1.0)} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>1:1</button>
+                  <button onClick={() => setScale(Math.min(3.0, scale + 0.1))} style={{ fontSize: '10px', padding: '2px 6px', cursor: 'pointer' }}>+</button>
+                </div>
               </div>
 
               {/* Banner at bottom */}
-               <div className="banner-container" style={{ padding: '10px', textAlign: 'center', position: 'relative', borderTop: '1px solid #ccc' }}>
+              <div className="banner-container" style={{ padding: '10px', textAlign: 'center', position: 'relative', borderTop: '1px solid #ccc' }}>
                 <a href="https://github.com/gamebox777/NumberStamp/blob/main/README.md" target="_blank" rel="noopener noreferrer" style={{ display: 'block', textDecoration: 'none' }}>
                   <img src={bannerImg} alt="NumberStamp" style={{ width: '100%', borderRadius: '5px', display: 'block', border: '1px solid #ccc' }} />
                 </a>

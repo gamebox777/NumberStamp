@@ -113,7 +113,9 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
         現在のモード: {
           mode === 'select' ? '選択 (Select)' :
             mode === 'stamp' ? 'スタンプ (Stamp)' :
-              mode === 'rectangle' ? '矩形 (Rectangle)' : mode
+              mode === 'rectangle' ? '矩形 (Rectangle)' :
+                mode === 'text' ? 'テキスト (Text)' :
+                  mode === 'pen' ? 'ペン (Pen)' : mode
         }
       </div>
 
@@ -186,7 +188,7 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
         </>
       )}
 
-      {(mode !== 'select' || selectedItem) && (
+      {(mode === 'stamp' || (selectedItem && selectedItem.type === 'stamp')) && (
         <div className="settings-group">
           <h4>色設定</h4>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
@@ -213,6 +215,17 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
               onChange={(e) => handleChange('strokeWidth', parseInt(e.target.value))}
             />
             <span>{currentSettings.strokeWidth || 5}px</span>
+          </div>
+
+          <div className="settings-row">
+            <label>線色</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={currentSettings.color || 'red'}
+                onChange={(newColor) => handleChange('color', newColor)}
+              />
+              <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.color}</span>
+            </div>
           </div>
 
 
@@ -308,7 +321,7 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
             <div className="settings-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '5px' }}>
               <label>配置</label>
               <div style={{ display: 'flex', gap: '10px' }}>
-                 {/* Horizontal Align */}
+                {/* Horizontal Align */}
                 <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
                   {['left', 'center', 'right'].map((align) => (
                     <div
@@ -437,6 +450,86 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
                 color={currentSettings.fill || '#000000'} // Text uses 'fill' for color
                 onChange={(newColor) => handleChange('fill', newColor)}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(mode === 'pen' || (selectedItem && selectedItem.type === 'pen')) && (
+        <div className="settings-group">
+          <h4>ペン設定</h4>
+          <div className="settings-row">
+            <label>線の太さ</label>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={isEditing ? (selectedItem.strokeWidth || 5) : (settings.penWidth || 5)}
+              onChange={(e) => handleChange(isEditing ? 'strokeWidth' : 'penWidth', parseInt(e.target.value))}
+            />
+            <span>{isEditing ? (selectedItem.strokeWidth || 5) : (settings.penWidth || 5)}px</span>
+          </div>
+
+          <div className="settings-row">
+            <label>色</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={isEditing ? (selectedItem.color || 'red') : (settings.penColor || 'red')}
+                onChange={(newColor) => handleChange(isEditing ? 'color' : 'penColor', newColor)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(mode === 'line' || (selectedItem && selectedItem.type === 'line')) && (
+        <div className="settings-group">
+          <h4>直線・矢印設定</h4>
+          <div className="settings-row">
+            <label>線の太さ</label>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={isEditing ? (selectedItem.strokeWidth || 5) : (settings.lineWidth || 5)}
+              onChange={(e) => handleChange(isEditing ? 'strokeWidth' : 'lineWidth', parseInt(e.target.value))}
+            />
+            <span>{isEditing ? (selectedItem.strokeWidth || 5) : (settings.lineWidth || 5)}px</span>
+          </div>
+
+          <div className="settings-row">
+            <label>色</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={isEditing ? (selectedItem.color || '#FF0000') : (settings.lineColor || '#FF0000')}
+                onChange={(newColor) => handleChange(isEditing ? 'color' : 'lineColor', newColor)}
+              />
+            </div>
+          </div>
+
+          <div className="settings-row">
+            <label>始点形状</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                id="startArrow"
+                checked={isEditing ? (selectedItem.startArrow) : (settings.lineStartArrow)}
+                onChange={(e) => handleChange(isEditing ? 'startArrow' : 'lineStartArrow', e.target.checked)}
+              />
+              <label htmlFor="startArrow" style={{ cursor: 'pointer' }}>矢印</label>
+            </div>
+          </div>
+
+          <div className="settings-row">
+            <label>終点形状</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                id="endArrow"
+                checked={isEditing ? (selectedItem.endArrow) : (settings.lineEndArrow)}
+                onChange={(e) => handleChange(isEditing ? 'endArrow' : 'lineEndArrow', e.target.checked)}
+              />
+              <label htmlFor="endArrow" style={{ cursor: 'pointer' }}>矢印</label>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MousePointer2, Stamp, Square, Type, Download, Image as ImageIcon, FileJson, FolderOpen, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
+import { MousePointer2, Stamp, Square, Type, Pen, ArrowRight, Download, Image as ImageIcon, FileJson, FolderOpen, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
 import Tooltip from './Tooltip';
 
 const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadProject, onClearAll, undo, redo, canUndo, canRedo }) => {
@@ -59,6 +59,24 @@ const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadPr
           onClick={() => setMode('text')}
         >
           <Type size={24} />
+        </div>
+      </Tooltip>
+
+      <Tooltip text="ペン (Pen)" position="right">
+        <div
+          className={`toolbar-button ${mode === 'pen' ? 'active' : ''}`}
+          onClick={() => setMode('pen')}
+        >
+          <Pen size={24} />
+        </div>
+      </Tooltip>
+
+      <Tooltip text="直線・矢印 (Line/Arrow)" position="right">
+        <div
+          className={`toolbar-button ${mode === 'line' ? 'active' : ''}`}
+          onClick={() => setMode('line')}
+        >
+          <ArrowRight size={24} />
         </div>
       </Tooltip>
 

@@ -11,8 +11,8 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
   // Groupの選択範囲(Transformer)をRectのサイズに制限する
   useLayoutEffect(() => {
     if (groupRef.current && rectRef.current) {
-      groupRef.current.getClientRect = () => {
-        return rectRef.current.getClientRect();
+      groupRef.current.getClientRect = (config) => {
+        return rectRef.current.getClientRect(config);
       };
     }
   }, []);
@@ -23,13 +23,13 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
       const context = canvas.getContext('2d');
       let size = item.fontSize || 24;
       const minSize = 8;
-      
+
       while (size >= minSize) {
         context.font = `${size}px ${item.fontFamily || 'Arial'}`;
         // 高さ概算 (簡易的に size * 1.2 * 行数)
         const lines = String(item.text).split('\n');
         const maxWidth = Math.max(...lines.map(line => context.measureText(line).width));
-        const totalHeight = size * lines.length * 1.2; 
+        const totalHeight = size * lines.length * 1.2;
 
         if (maxWidth <= item.width && totalHeight <= item.height) {
           break;
@@ -45,11 +45,11 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
   // Overflow Alignment Logic
   const isOverflow = item.wrap !== 'fit';
   let textProps = {};
-  
+
   if (isOverflow) {
     const largeWidth = 10000;
     const align = item.align || 'center';
-    
+
     if (align === 'center') {
       textProps = {
         width: largeWidth,
@@ -67,7 +67,7 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
     } else {
       // Left
       textProps = {
-        width: largeWidth, 
+        width: largeWidth,
         x: 0,
         align: 'left'
       };
@@ -132,13 +132,14 @@ const RectangleItem = ({ item, isSelected, onSelect, onChange }) => {
         fill={item.fill || 'transparent'}
         fillEnabled={true}
       />
-      
+
       {/* 
         Wrap=none (Overflow) の場合、widthを大きく取ってAlignmentを制御する。
         Wrap=fit の場合、width=item.widthで、fontSizeを計算して収める。
       */}
       <Text
         text={item.text !== undefined && item.text !== null ? String(item.text) : ''}
+        height={item.height}
         fontSize={fittedFontSize}
         fontFamily={item.fontFamily || 'Arial'}
         fill={item.textColor || '#000000'}

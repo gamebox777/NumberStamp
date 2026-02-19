@@ -3,6 +3,7 @@ import './App.css';
 import Toolbar from './components/Toolbar';
 import SettingsPanel from './components/SettingsPanel';
 import CanvasArea from './components/CanvasArea';
+import ContextMenu from './components/ContextMenu';
 import ErrorBoundary from './components/ErrorBoundary';
 import useUndoRedo from './hooks/useUndoRedo';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,6 +11,7 @@ import { validateProjectName } from './utils/validation';
 import Tooltip from './components/Tooltip';
 import packageJson from '../package.json';
 import bannerImg from './assets/banner_new.jpg';
+import { DEFAULT_STYLES } from './constants/defaults';
 
 function App() {
   const [items, setItems, undo, redo, canUndo, canRedo, resetItems] = useUndoRedo([]);
@@ -18,32 +20,44 @@ function App() {
   const [settings, setSettings] = useState({
     number: 1,
     step: 1,
-    color: 'rgba(255, 0, 0, 1)',
-    radius: 20,
-    shape: 'circle',
+    // Stamp defaults
+    color: DEFAULT_STYLES.stamp.color,
+    radius: DEFAULT_STYLES.stamp.radius,
+    shape: DEFAULT_STYLES.stamp.shape,
+    stampFontSize: DEFAULT_STYLES.stamp.stampFontSize,
+    stampTextColor: DEFAULT_STYLES.stamp.stampTextColor,
+    stampSyncFontSize: DEFAULT_STYLES.stamp.stampSyncFontSize,
+
+    // Rectangle defaults
+    strokeWidth: DEFAULT_STYLES.rectangle.strokeWidth,
+    fill: DEFAULT_STYLES.rectangle.fill,
+    rectText: '',
+    rectFontSize: DEFAULT_STYLES.rectangle.fontSize,
+    rectFontFamily: DEFAULT_STYLES.rectangle.fontFamily,
+    rectTextColor: DEFAULT_STYLES.rectangle.textColor,
+    rectAlign: DEFAULT_STYLES.rectangle.align,
+    rectVerticalAlign: DEFAULT_STYLES.rectangle.verticalAlign,
+    rectTextWrap: DEFAULT_STYLES.rectangle.wrap,
+
+    // Text defaults
+    text: 'Text',
+    fontSize: DEFAULT_STYLES.text.fontSize,
+    fontFamily: DEFAULT_STYLES.text.fontFamily,
+
+    // Pen defaults
+    penColor: DEFAULT_STYLES.pen.color,
+    penWidth: DEFAULT_STYLES.pen.strokeWidth,
+
+    // Line defaults
+    lineColor: DEFAULT_STYLES.line.color,
+    lineWidth: DEFAULT_STYLES.line.strokeWidth,
+    lineStartArrow: DEFAULT_STYLES.line.startArrow,
+    lineEndArrow: DEFAULT_STYLES.line.endArrow,
+
+    // Unused/Legacy
     brush_color: '',
     line_width: 2,
     pen_style: 'solid',
-    fill: 'transparent',
-    strokeWidth: 5,
-    fontSize: 24,
-    fontFamily: 'Arial',
-    text: 'Text',
-    rectText: '',
-    rectFontSize: 24,
-    rectFontFamily: 'Arial',
-    rectTextColor: '#000000',
-    rectAlign: 'center',
-    rectVerticalAlign: 'middle',
-    rectAlign: 'center',
-    rectVerticalAlign: 'middle',
-    rectTextWrap: 'none',
-    penColor: 'red',
-    penWidth: 5,
-    lineColor: '#FF0000',
-    lineWidth: 5,
-    lineStartArrow: false,
-    lineEndArrow: true
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -52,6 +66,8 @@ function App() {
   const [imageSize, setImageSize] = useState({ width: 800, height: 600 });
   const stageRef = useRef(null);
   const [clipboard, setClipboard] = useState([]);
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, canvasX: 0, canvasY: 0 });
+  const canvasWrapperRef = useRef(null);
 
   // クリップボード操作
   const handleCopy = () => {
@@ -77,6 +93,27 @@ function App() {
 
     setItems(prevItems => [...prevItems, ...newItems]);
     // ペーストしたアイテムを選択状態にする
+    setSelectedIds(newItems.map(item => item.id));
+  };
+
+  // 指定位置にペースト（右クリックメニューから呼ばれる）
+  const handlePasteAtPosition = (canvasX, canvasY) => {
+    if (clipboard.length === 0) return;
+
+    // クリップボード内アイテムの中心を計算
+    const centerX = clipboard.reduce((sum, item) => sum + item.x, 0) / clipboard.length;
+    const centerY = clipboard.reduce((sum, item) => sum + item.y, 0) / clipboard.length;
+
+    const newItems = clipboard.map(item => {
+      const newItem = { ...item };
+      newItem.id = uuidv4();
+      // 右クリック位置を中心にオフセットして配置
+      newItem.x = canvasX + (item.x - centerX);
+      newItem.y = canvasY + (item.y - centerY);
+      return newItem;
+    });
+
+    setItems(prevItems => [...prevItems, ...newItems]);
     setSelectedIds(newItems.map(item => item.id));
   };
 
@@ -129,10 +166,12 @@ function App() {
         rectTextColor: '#000000',
         rectAlign: 'center',
         rectVerticalAlign: 'middle',
-        rectVerticalAlign: 'middle',
         rectTextWrap: 'none',
         penColor: 'red',
-        penWidth: 5
+        penWidth: 5,
+        stampFontSize: 24,
+        stampTextColor: '#FFFFFF',
+        stampSyncFontSize: true
       };
       // キーが足りない場合のみ追加
       const missingKeys = Object.keys(defaults).filter(key => prev[key] === undefined);
@@ -367,17 +406,14 @@ function App() {
         />
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', backgroundColor: '#e0e0e0', padding: '20px' }}>
+          <div ref={canvasWrapperRef} className="canvas-area-wrapper" style={{ flex: 1, overflow: 'auto', display: 'grid', placeItems: 'center', backgroundColor: '#e0e0e0', padding: '20px', position: 'relative' }}
+          >
             <CanvasArea
               ref={stageRef}
               imageSrc={imageSrc}
               mode={mode}
               setMode={(m) => {
                 setMode(m);
-                // モードが変わったら選択状態をクリアするかどうかは要件によるが、
-                // 右クリックでSelectモードに行く場合は選択状態を維持（むしろ選択しにいく）したいので
-                // ここでは単にstate更新のみ。ToolbarのsetModeはsetSelectedIds([])してるので挙動が違う点に注意。
-                // 必要ならToolbarのロジックも共通化すべきだが、今回はCanvasAreaからの呼び出しは選択維持を前提とする。
               }}
               items={items}
               setItems={setItems}
@@ -385,6 +421,31 @@ function App() {
               setSelectedIds={setSelectedIds}
               settings={settings}
               scale={scale}
+              onContextMenu={(clientX, clientY, canvasX, canvasY) => {
+                // canvasWrapperの位置を基準にメニュー座標を計算
+                const wrapper = canvasWrapperRef.current;
+                if (wrapper) {
+                  const rect = wrapper.getBoundingClientRect();
+                  setContextMenu({
+                    visible: true,
+                    x: clientX - rect.left + wrapper.scrollLeft,
+                    y: clientY - rect.top + wrapper.scrollTop,
+                    canvasX,
+                    canvasY
+                  });
+                }
+              }}
+            />
+            <ContextMenu
+              visible={contextMenu.visible}
+              x={contextMenu.x}
+              y={contextMenu.y}
+              hasSelection={selectedIds.length > 0}
+              hasClipboard={clipboard.length > 0}
+              onCopy={handleCopy}
+              onPaste={() => handlePasteAtPosition(contextMenu.canvasX, contextMenu.canvasY)}
+              onDelete={handleDeleteItem}
+              onClose={() => setContextMenu({ ...contextMenu, visible: false })}
             />
           </div>
           {imageSrc && (

@@ -22,7 +22,8 @@ const CanvasArea = React.forwardRef(({
   selectedIds,
   setSelectedIds,
   settings,
-  scale = 1.0
+  scale = 1.0,
+  onContextMenu: onContextMenuCallback
 }, ref) => {
   const [image] = useImage(imageSrc || '');
   const [newRect, setNewRect] = useState(null); // ドラッグ中の新規矩形
@@ -149,6 +150,9 @@ const CanvasArea = React.forwardRef(({
         color: settings.color,
         radius: settings.radius,
         shape: settings.shape,
+        stampFontSize: settings.stampFontSize,
+        stampTextColor: settings.stampTextColor,
+        stampSyncFontSize: settings.stampSyncFontSize,
         arrowEndPoint: { x: 0, y: 0 }
       };
 
@@ -440,6 +444,14 @@ const CanvasArea = React.forwardRef(({
           onMouseLeave={handleMouseLeave}
           onContextMenu={(e) => {
             e.evt.preventDefault();
+            // 右クリック位置をコールバックで親に通知
+            if (onContextMenuCallback) {
+              const stage = e.target.getStage();
+              const pos = stage.getPointerPosition();
+              const canvasX = pos.x / scale;
+              const canvasY = pos.y / scale;
+              onContextMenuCallback(e.evt.clientX, e.evt.clientY, canvasX, canvasY);
+            }
           }}
           ref={ref}
         >
@@ -587,6 +599,9 @@ const CanvasArea = React.forwardRef(({
                   color: settings.color,
                   radius: settings.radius,
                   shape: settings.shape,
+                  stampFontSize: settings.stampFontSize,
+                  stampTextColor: settings.stampTextColor,
+                  stampSyncFontSize: settings.stampSyncFontSize,
                 }}
                 isSelected={false}
                 opacity={0.5}

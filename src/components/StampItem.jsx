@@ -84,13 +84,35 @@ const StampItem = ({
       }}
       onTransformEnd={(e) => {
         if (e.target.id() === item.id) {
+          const node = e.target;
+          const scaleX = node.scaleX();
+
+          // 新しい値を計算
+          // 現在のフォントサイズが未設定の場合は計算で求める
+          const currentFontSize = item.stampFontSize || getFontSize();
+
+          const newRadius = Math.max(10, Math.round(item.radius * scaleX));
+
+          // 文字サイズ追従設定を確認 (デフォルトはtrue)
+          const syncFontSize = item.stampSyncFontSize !== false;
+          const newFontSize = syncFontSize
+            ? Math.max(6, Math.round(currentFontSize * scaleX))
+            : currentFontSize;
+
+          // スケールをリセットして、実際のサイズ値を更新
+          // これにより設定パネル上の数値も更新される
+          node.scaleX(1);
+          node.scaleY(1);
+
           onChange({
             ...item,
-            x: e.target.x(),
-            y: e.target.y(),
-            rotation: e.target.rotation(),
-            scaleX: e.target.scaleX(),
-            scaleY: e.target.scaleY()
+            x: node.x(),
+            y: node.y(),
+            rotation: node.rotation(),
+            scaleX: 1,
+            scaleY: 1,
+            radius: newRadius,
+            stampFontSize: newFontSize
           });
         }
       }}
@@ -132,10 +154,10 @@ const StampItem = ({
       {/* テキスト */}
       <Text
         text={String(item.number)}
-        fontSize={getFontSize()}
+        fontSize={item.stampFontSize ? item.stampFontSize : getFontSize()}
         fontStyle="bold"
         fontFamily="Arial"
-        fill="white"
+        fill={item.stampTextColor ? item.stampTextColor : "white"}
         align="center"
         verticalAlign="middle"
         width={item.shape === 'square' ? shapeProps.width : item.radius * 2}

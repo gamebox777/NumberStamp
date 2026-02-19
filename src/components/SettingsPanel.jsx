@@ -1,18 +1,70 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { RgbaStringColorPicker } from 'react-colorful';
-import { useState, useRef, useEffect } from 'react';
-import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine, RotateCcw, Palette } from 'lucide-react';
 
 import { validateProjectName } from '../utils/validation';
 import Tooltip from './Tooltip';
+import { DEFAULT_STYLES } from '../constants/defaults';
 
-// Simple Popover component for color picker
+// 基本プリセットカラー
+const PRESET_COLORS = [
+  '#000000', '#FFFFFF', '#FF0000', '#008000', '#0000FF',
+  '#FFFF00', '#FFA500', '#800080', '#FFC0CB', '#808080'
+];
+
+// 最近使った色の履歴管理
+const COLOR_HISTORY_KEY = 'numberStamp_colorHistory';
+const MAX_COLOR_HISTORY = 5;
+
+const getColorHistory = () => {
+  try {
+    const stored = localStorage.getItem(COLOR_HISTORY_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const addColorToHistory = (color) => {
+  if (!color) return;
+  // rgba系の色や透明は履歴に追加しない
+  const normalizedColor = color.toLowerCase().trim();
+  if (normalizedColor === 'transparent') return;
+
+  const history = getColorHistory();
+  // 既に同じ色がある場合は先頭に移動
+  const filtered = history.filter(c => c.toLowerCase() !== normalizedColor);
+  filtered.unshift(color);
+  // 最大5件に制限
+  const trimmed = filtered.slice(0, MAX_COLOR_HISTORY);
+  localStorage.setItem(COLOR_HISTORY_KEY, JSON.stringify(trimmed));
+};
+
 const ColorPickerPopover = ({ color, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [colorHistory, setColorHistory] = useState(getColorHistory);
   const popoverRef = useRef();
+  const buttonRef = useRef();
+  const showPickerRef = useRef(false);
+  const colorRef = useRef(color);
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
+
+  // refを最新値に同期
+  useEffect(() => { showPickerRef.current = showPicker; }, [showPicker]);
+  useEffect(() => { colorRef.current = color; }, [color]);
 
   const handleClickOutside = (event) => {
-    if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+    if (
+      popoverRef.current && !popoverRef.current.contains(event.target) &&
+      buttonRef.current && !buttonRef.current.contains(event.target)
+    ) {
+      // フリーカラーピッカーが開いていた場合、閉じる時に現在の色を履歴に追加
+      if (showPickerRef.current) {
+        addColorToHistory(colorRef.current);
+      }
       setIsOpen(false);
+      setShowPicker(false);
     }
   };
 
@@ -23,34 +75,208 @@ const ColorPickerPopover = ({ color, onChange }) => {
     };
   }, []);
 
+  // ポップオーバーの位置をボタンの位置から計算
+  const updatePosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      // ポップオーバーの幅（約220px）を考慮して左に寄せる
+      const popoverWidth = 220;
+      let left = rect.right - popoverWidth;
+      // 画面左端からはみ出さないように
+      if (left < 5) left = 5;
+      // 画面下端からはみ出す場合は上に表示
+      const popoverHeight = showPicker ? 320 : 80;
+      let top = rect.bottom + 5;
+      if (top + popoverHeight > window.innerHeight) {
+        top = rect.top - popoverHeight - 5;
+      }
+      setPopoverPos({ top, left });
+    }
+  };
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      setColorHistory(getColorHistory());
+      updatePosition();
+    } else {
+      // フリーカラーピッカーが開いていた場合、閉じる時に現在の色を履歴に追加
+      if (showPicker) {
+        addColorToHistory(color);
+        setColorHistory(getColorHistory());
+      }
+      setShowPicker(false);
+    }
+    setIsOpen(!isOpen);
+  };
+
+  // フリーカラーピッカーの表示切替時に位置を再計算
+  const handleTogglePicker = () => {
+    setShowPicker(prev => {
+      // 次のtickで位置を更新
+      setTimeout(() => updatePosition(), 0);
+      return !prev;
+    });
+  };
+
+  const handleColorChange = useCallback((newColor) => {
+    onChange(newColor);
+  }, [onChange]);
+
+  // フリーカラーピッカーで色変更が完了した時（mouseup時）に履歴に追加
+  const handleColorChangeComplete = useCallback((newColor) => {
+    addColorToHistory(newColor);
+    setColorHistory(getColorHistory());
+    onChange(newColor);
+  }, [onChange]);
+
+  const handleHistoryColorClick = (historyColor) => {
+    onChange(historyColor);
+    addColorToHistory(historyColor);
+    setColorHistory(getColorHistory());
+  };
+
+  const transparentPattern = {
+    backgroundImage: `linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)`,
+    backgroundSize: '10px 10px',
+    backgroundPosition: '0 0, 5px 5px'
+  };
+
+  // 虹色グラデーションスタイル
+  const rainbowStyle = {
+    background: 'linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00cc00, #0088ff, #8800ff)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  };
+
   return (
     <div className="color-picker-wrapper" style={{ position: 'relative' }}>
       <div
+        ref={buttonRef}
         style={{
           width: '30px',
           height: '30px',
-          backgroundColor: color,
           border: '1px solid #ccc',
           cursor: 'pointer',
           borderRadius: '4px',
-          background: `linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)`,
-          backgroundSize: '10px 10px',
-          backgroundPosition: '0 0, 5px 5px'
+          ...transparentPattern
         }}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
       >
         <div style={{ width: '100%', height: '100%', backgroundColor: color, borderRadius: '4px' }}></div>
       </div>
 
       {isOpen && (
-        <div className="popover" ref={popoverRef} style={{ position: 'absolute', zIndex: 100, top: '100%', left: 0, marginTop: '5px' }}>
-          <RgbaStringColorPicker color={color} onChange={onChange} />
+        <div
+          className="popover"
+          ref={popoverRef}
+          style={{
+            position: 'fixed',
+            zIndex: 10000,
+            top: popoverPos.top,
+            left: popoverPos.left,
+            backgroundColor: 'white',
+            padding: '10px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            border: '1px solid #ddd'
+          }}
+        >
+          {/* 最近使った色の履歴 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '11px', color: '#888', whiteSpace: 'nowrap' }}>履歴:</span>
+            {colorHistory.length > 0 ? (
+              colorHistory.map((histColor, idx) => (
+                <div
+                  key={`${histColor}-${idx}`}
+                  onClick={() => handleHistoryColorClick(histColor)}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    backgroundColor: histColor,
+                    border: color === histColor ? '2px solid #333' : '1px solid #ccc',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    flexShrink: 0,
+                  }}
+                  title={histColor}
+                />
+              ))
+            ) : (
+              <span style={{ fontSize: '11px', color: '#bbb' }}>なし</span>
+            )}
+          </div>
+
+          {/* 基本色プリセット */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px', width: '200px' }}>
+            {PRESET_COLORS.map((preset) => (
+              <div
+                key={preset}
+                onClick={() => onChange(preset)}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  backgroundColor: preset,
+                  border: color === preset ? '2px solid #333' : '1px solid #ccc',
+                  cursor: 'pointer',
+                  borderRadius: '4px'
+                }}
+                title={preset}
+              />
+            ))}
+          </div>
+
+          {/* 虹色ピッカーアイコン（クリックでフリーカラーパレットを開閉） */}
+          <div
+            onClick={handleTogglePicker}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              padding: '5px 8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              backgroundColor: showPicker ? '#f0f0f0' : '#fafafa',
+              marginBottom: showPicker ? '8px' : '0',
+              userSelect: 'none',
+              transition: 'background-color 0.15s',
+            }}
+            title="フリーカラーパレットを開く"
+          >
+            <Palette size={16} style={{
+              stroke: 'url(#rainbowGrad)',
+              filter: 'brightness(0.9)',
+            }} />
+            {/* SVGグラデーション定義 */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+              <defs>
+                <linearGradient id="rainbowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#ff0000" />
+                  <stop offset="20%" stopColor="#ff8800" />
+                  <stop offset="40%" stopColor="#ffff00" />
+                  <stop offset="60%" stopColor="#00cc00" />
+                  <stop offset="80%" stopColor="#0088ff" />
+                  <stop offset="100%" stopColor="#8800ff" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <span style={{ fontSize: '12px', color: '#555' }}>
+              {showPicker ? '▲ カラーパレットを閉じる' : '▼ カラーパレットを開く'}
+            </span>
+          </div>
+
+          {/* フリーカラーパレット（虹アイコンクリックで開閉） */}
+          {showPicker && (
+            <RgbaStringColorPicker
+              color={color}
+              onChange={handleColorChange}
+            />
+          )}
         </div>
       )}
     </div>
   );
 };
-
 
 const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem, mode, onDelete, projectName, setProjectName }) => {
 
@@ -66,14 +292,57 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
     }
   };
 
-  const colors = ['#FF0000', '#0000FF', '#008000', '#FFA500', '#000000', '#FFFFFF'];
+  /* Removed colors array as it is now handled in ColorPickerPopover */
 
   const projectValidation = validateProjectName(projectName);
 
+  const handleReset = () => {
+    if (!window.confirm('このツールの設定を初期状態（システムデフォルト）に戻しますか？')) return;
+
+    const targetType = isEditing ? selectedItem.type : mode;
+    const defaults = DEFAULT_STYLES[targetType];
+
+    if (!defaults) return;
+
+    if (isEditing) {
+      // 選択アイテムのリセット
+      updateSelectedItem(selectedItem.id, defaults);
+    } else {
+      // ツール設定のリセット
+      const newSettings = { ...settings };
+
+      if (targetType === 'stamp') {
+        Object.assign(newSettings, defaults);
+      } else if (targetType === 'rectangle') {
+        newSettings.strokeWidth = defaults.strokeWidth;
+        newSettings.color = defaults.color;
+        newSettings.fill = defaults.fill;
+        newSettings.rectFontSize = defaults.fontSize;
+        newSettings.rectFontFamily = defaults.fontFamily;
+        newSettings.rectTextColor = defaults.textColor;
+        newSettings.rectAlign = defaults.align;
+        newSettings.rectVerticalAlign = defaults.verticalAlign;
+        newSettings.rectTextWrap = defaults.wrap;
+      } else if (targetType === 'text') {
+        newSettings.text = settings.text;
+        newSettings.fontSize = defaults.fontSize;
+        newSettings.fontFamily = defaults.fontFamily;
+        newSettings.fill = defaults.fill;
+      } else if (targetType === 'pen') {
+        newSettings.penWidth = defaults.strokeWidth;
+        newSettings.penColor = defaults.color;
+      } else if (targetType === 'line') {
+        newSettings.lineWidth = defaults.strokeWidth;
+        newSettings.lineColor = defaults.color;
+        newSettings.lineStartArrow = defaults.startArrow;
+        newSettings.lineEndArrow = defaults.endArrow;
+      }
+
+      setSettings(newSettings);
+    }
+  };
   return (
     <div className="settings-panel">
-
-
       {mode === 'select' && (
         <div className="settings-group">
           <h4>プロジェクト名</h4>
@@ -121,82 +390,140 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3>設定 ({isEditing ? '選択中' : '新規'})</h3>
-        {isEditing && (
-          <button
-            onClick={onDelete}
-            style={{
-              backgroundColor: '#ff4d4d',
-              color: 'white',
-              border: 'none',
-              padding: '5px 10px',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            削除
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {(mode !== 'select' || isEditing) && (
+            <Tooltip text="初期設定に戻す">
+              <button
+                onClick={handleReset}
+                style={{
+                  backgroundColor: '#f0f0f0',
+                  color: '#333',
+                  border: '1px solid #ccc',
+                  padding: '5px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <RotateCcw size={14} />
+              </button>
+            </Tooltip>
+          )}
+
+          {isEditing && (
+            <button
+              onClick={onDelete}
+              style={{
+                backgroundColor: '#ff4d4d',
+                color: 'white',
+                border: 'none',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+            >
+              削除
+            </button>
+          )}
+        </div>
       </div>
 
       {(mode === 'stamp' || (selectedItem && selectedItem.type === 'stamp')) && (
-        <>
-          <div className="settings-group">
-            <h4>スタンプ設定</h4>
-            <div className="settings-row">
-              <label>番号</label>
+        <div className="settings-group">
+          <h4>スタンプ設定</h4>
+          <div className="settings-row">
+            <label>番号</label>
+            <input
+              type="number"
+              value={currentSettings.number}
+              onChange={(e) => handleChange('number', parseInt(e.target.value))}
+              style={{ width: '60px' }}
+            />
+          </div>
+          <div className="settings-row">
+            <label>増分</label>
+            <input
+              type="number"
+              value={currentSettings.step}
+              onChange={(e) => handleChange('step', parseInt(e.target.value))}
+              style={{ width: '60px' }}
+            />
+          </div>
+
+          <div className="settings-row">
+            <label>形状サイズ</label>
+            <input
+              type="range"
+              min="10"
+              max="100"
+              value={currentSettings.radius}
+              onChange={(e) => handleChange('radius', parseInt(e.target.value))}
+            />
+            <span>{currentSettings.radius}</span>
+          </div>
+
+          <div className="settings-row">
+            <label>文字サイズ</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <input
                 type="number"
-                value={currentSettings.number}
-                onChange={(e) => handleChange('number', parseInt(e.target.value))}
+                min="6"
+                max="100"
+                value={isEditing ? (selectedItem.stampFontSize || 24) : (settings.stampFontSize || 24)}
+                onChange={(e) => handleChange(isEditing ? 'stampFontSize' : 'stampFontSize', parseInt(e.target.value))}
+                style={{ width: '50px' }}
               />
-            </div>
-
-            {!isEditing && (
-              <div className="settings-row">
-                <label>増分</label>
-                <input
-                  type="number"
-                  value={settings.step || 1}
-                  onChange={(e) => setSettings(prev => ({ ...prev, step: parseInt(e.target.value) }))}
-                />
-              </div>
-            )}
-
-            <div className="settings-row">
-              <label>サイズ</label>
-              <input
-                type="range"
-                min="10"
-                max="50"
-                value={currentSettings.radius}
-                onChange={(e) => handleChange('radius', parseInt(e.target.value))}
-              />
-              <span>{currentSettings.radius}</span>
-            </div>
-
-            <div className="settings-row">
-              <label>形状</label>
-              <select
-                value={currentSettings.shape}
-                onChange={(e) => handleChange('shape', e.target.value)}
-              >
-                <option value="circle">円 (Circle)</option>
-                <option value="square">角丸四角 (Square)</option>
-              </select>
+              <span>px</span>
             </div>
           </div>
-        </>
-      )}
 
-      {(mode === 'stamp' || (selectedItem && selectedItem.type === 'stamp')) && (
-        <div className="settings-group">
+          <div className="settings-row">
+            <label></label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <input
+                type="checkbox"
+                id="stampSyncFontSize"
+                checked={isEditing ? (selectedItem.stampSyncFontSize !== false) : (settings.stampSyncFontSize !== false)}
+                onChange={(e) => handleChange(isEditing ? 'stampSyncFontSize' : 'stampSyncFontSize', e.target.checked)}
+              />
+              <label htmlFor="stampSyncFontSize" style={{ cursor: 'pointer', fontSize: '12px' }}>文字サイズも連動</label>
+            </div>
+          </div>
+
+          <div className="settings-row">
+            <label>形状</label>
+            <select
+              value={currentSettings.shape}
+              onChange={(e) => handleChange('shape', e.target.value)}
+            >
+              <option value="circle">円 (Circle)</option>
+              <option value="square">角丸四角 (Square)</option>
+            </select>
+          </div>
+
           <h4>色設定</h4>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-            <ColorPickerPopover
-              color={currentSettings.color}
-              onChange={(newColor) => handleChange('color', newColor)}
-            />
-            <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.color}</span>
+          <div className="settings-row">
+            <label>形状色</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={currentSettings.color}
+                onChange={(newColor) => handleChange('color', newColor)}
+              />
+              <span style={{ fontSize: '12px', color: '#666' }}>{currentSettings.color}</span>
+            </div>
+          </div>
+          <div className="settings-row">
+            <label>文字色</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ColorPickerPopover
+                color={isEditing ? (selectedItem.stampTextColor || '#FFFFFF') : (settings.stampTextColor || '#FFFFFF')}
+                onChange={(newColor) => handleChange(isEditing ? 'stampTextColor' : 'stampTextColor', newColor)}
+              />
+              <span style={{ fontSize: '12px', color: '#666' }}>{isEditing ? (selectedItem.stampTextColor || '#FFFFFF') : (settings.stampTextColor || '#FFFFFF')}</span>
+            </div>
           </div>
         </div>
       )}
@@ -253,14 +580,7 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
                   onClick={() => handleChange('fill', 'transparent')}
                 />
               </Tooltip>
-              {colors.map(c => (
-                <div
-                  key={c}
-                  className={`color-option ${currentSettings.fill === c ? 'selected' : ''}`}
-                  style={{ backgroundColor: c, width: '24px', height: '24px', cursor: 'pointer', border: currentSettings.fill === c ? '2px solid black' : '1px solid #ddd' }}
-                  onClick={() => handleChange('fill', c)}
-                />
-              ))}
+              {/* Colors are now handled in the Popover */}
             </div>
           </div>
 
@@ -321,7 +641,6 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
             <div className="settings-row" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '5px' }}>
               <label>配置</label>
               <div style={{ display: 'flex', gap: '10px' }}>
-                {/* Horizontal Align */}
                 <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
                   {['left', 'center', 'right'].map((align) => (
                     <div
@@ -342,7 +661,6 @@ const SettingsPanel = ({ settings, setSettings, selectedItem, updateSelectedItem
                   ))}
                 </div>
 
-                {/* Vertical Align */}
                 <div style={{ display: 'flex', border: '1px solid #ccc', borderRadius: '4px' }}>
                   {['top', 'middle', 'bottom'].map((valign) => (
                     <div

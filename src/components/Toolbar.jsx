@@ -115,7 +115,10 @@ const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadPr
             id="file-upload"
             type="file"
             accept="image/*"
-            onChange={onLoadImage}
+            onChange={(e) => {
+              onLoadImage(e);
+              e.target.value = '';
+            }}
             style={{ display: 'none' }}
           />
         </div>

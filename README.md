@@ -1,19 +1,21 @@
 <img src="docs/images/Gemini_Generated_Image_1gc5g31gc5g31gc5.jpg" width="100%" alt="Banner">
 
-# NumberStamp
+![Number Stamp](https://capsule-render.vercel.app/api?type=rect&color=003366&height=60&section=header&text=Number%20Stamp&fontSize=28&fontColor=ffffff)
 
 ### 🚀 実行URL: <a href="https://number-stamp.vercel.app/" target="_blank" rel="noopener noreferrer">https://number-stamp.vercel.app/</a>
 
 画像に連番付きのスタンプ（丸印・角丸四角）や矢印、矩形（枠線）を配置し、作業手順書やバグ報告、レビュー画像などを素早く作成するためのWebツールです。
 
-<img src="docs/images/app_overview.png" width="50%" alt="アプリ概要">
+<img src="docs/images/numstamp_export.jpg" width="75%" alt="アプリ概要">
+
+
 
 
 <br>
 
 ---
 
-## ✨ 主な機能と操作方法
+![✨ 主な機能と操作方法](https://capsule-render.vercel.app/api?type=rect&color=003366&height=60&section=header&text=✨%20主な機能と操作方法&fontSize=28&fontColor=ffffff)
 
 ブラウザ上で画像を読み込み、直感的な操作で注釈を入れることができます。
 
@@ -31,7 +33,7 @@
 
 ---
 
-#### 👆 選択 (Select) モード
+### 👆 選択 (Select) モード
 オブジェクトの選択・移動・編集を行います。
 
 - **基本的な操作**: オブジェクトをクリックして選択します。選択状態のオブジェクトはドラッグして移動できます。
@@ -40,18 +42,28 @@
 
 ---
 
-#### 🔢 スタンプ (Stamp) モード
+### 🔢 スタンプ (Stamp) モード
 クリックした場所に連番スタンプを配置します。
 
-<img src="docs/images/mode_stamp.png" width="50%" alt="Stamp Mode">
+<img src="docs/images/numstamp_export.jpg" width="50%" alt="Stamp Mode">
 
 - **自動連番**: スタンプを配置するたびに、設定された増分（Step）に従って番号が自動で進みます（例: 1 → 2 → 3）。
 - **形状と色**: 設定パネルで「円」や「角丸四角」への切り替え、色やサイズの変更が可能です。
 - **連続配置**: モードを切り替えるまで、連続してスタンプを押すことができます。
 
+<br>
+
+**🔗 スタンプ間の矢印 (Connect)**<br>
+スタンプ等のオブジェクト間を矢印で結び、順序や関係性を示します。
+
+1. **選択**: 「選択モード」で、矢印の始点となるスタンプをクリックして選択します。
+2. **ハンドル操作**: スタンプの周囲（通常は右側）に表示される**水色（シアン色）の丸いハンドル**を探します。
+3. **ドラッグ**: そのハンドルをドラッグして、矢印の先端を目的の場所（別のスタンプや任意の位置）まで引っ張ります。
+4. **調整**: 矢印の色や太さは、始点となっているスタンプの設定に依存するか、個別に調整可能です（現状はスタンプに紐づく）。
+
 ---
 
-#### 🔲 矩形 (Rectangle) モード
+### 🔲 矩形 (Rectangle) モード
 ドラッグして矩形（四角い枠）を描画し、注目させたい箇所を強調します。
 
 <img src="docs/images/mode_rectangle.png" width="50%" alt="Rectangle Mode">
@@ -62,7 +74,7 @@
 
 ---
 
-#### 🔤 テキスト (Text) モード
+### 🔤 テキスト (Text) モード
 画像上の任意の位置にテキストコメントを追加します。
 
 <img src="docs/images/mode_text.png" width="50%" alt="Text Mode">
@@ -73,7 +85,7 @@
 
 ---
 
-#### ✒️ ペン (Pen) モード
+### ✒️ ペン (Pen) モード
 フリーハンドで線を描画します。
 
 <img src="docs/images/mode_pen.png" width="50%" alt="Pen Mode">
@@ -83,7 +95,7 @@
 
 ---
 
-#### 📏 直線・矢印 (Line/Arrow) モード
+### 📏 直線・矢印 (Line/Arrow) モード
 任意の直線や矢印を描画するツールです。
 
 <img src="docs/images/mode_line.png" width="50%" alt="Line Mode">
@@ -94,15 +106,6 @@
 
 ---
 
-#### 🔗 スタンプ間の矢印 (Connect)
-スタンプ等のオブジェクト間を矢印で結び、順序や関係性を示します。
-
-<img src="docs/images/mode_arrow.png" width="50%" alt="Arrow Mode">
-
-1. **選択**: 「選択モード」で、矢印の始点となるスタンプをクリックして選択します。
-2. **ハンドル操作**: スタンプの周囲（通常は右側）に表示される**水色（シアン色）の丸いハンドル**を探します。
-3. **ドラッグ**: そのハンドルをドラッグして、矢印の先端を目的の場所（別のスタンプや任意の位置）まで引っ張ります。
-4. **調整**: 矢印の色や太さは、始点となっているスタンプの設定に依存するか、個別に調整可能です（現状はスタンプに紐づく）。
 
 ### 3. 詳細設定（右サイドバー）
 オブジェクトを選択している時、またはツールを選択中に、右側のパネルで詳細な設定が可能です。
@@ -113,7 +116,7 @@
   - **プロジェクト名**: 保存時のファイル名として使用されます。
   
 - **オブジェクト設定** (選択中のツール/アイテムにより変化):
-  - **スタンプ**: 番号、増分、サイズ、形状 (Circle/Square)、フォントサイズ。
+  - **スタンプ**: 番号、増分、形状サイズ、文字サイズ、形状 (Circle/Square)、形状色、文字色。
   - **矩形**: 枠線の太さ、色、塗りつぶし色、破線スタイル、内部テキスト設定 (配置・折り返し)。
   - **テキスト**: 内容、フォントサイズ、色。
   
@@ -139,7 +142,7 @@
 
 ---
 
-## 🛠️ 開発者向け情報
+![🛠️ 開発者向け情報](https://capsule-render.vercel.app/api?type=rect&color=003366&height=60&section=header&text=🛠️%20開発者向け情報&fontSize=28&fontColor=ffffff)
 
 React + Konva で構築されたSPA（Single Page Application）です。
 
@@ -173,9 +176,18 @@ npm run build
 <br>
 
 ---
+## 更新履歴
 
-## 📝 更新履歴
+<details>
 
+- **v1.5.0 (2026-02-19)**:
+    - 🔢 スタンプ(Stamp)ツールの設定を強化
+    - 形状サイズと文字サイズを個別に調整可能に
+    - 形状色と文字色を個別に設定可能に
+- **v1.4.3 (2026-02-19)**:
+    - 🎨 README.mdの見出しを全幅の帯デザインに変更・文字サイズ拡大
+- **v1.4.2 (2026-02-19)**:
+    - 🎨 README.mdのデザイン改善（バッジ風の見出し画像を採用）
 - **v1.4.1 (2026-02-19)**:
     - 📄 README.mdのレイアウト調整（各大カテゴリの区切りを改善）
 - **v1.4.0 (2026-02-19)**:
@@ -195,3 +207,5 @@ npm run build
     - 🎨 色選択で透明度(Alpha)が扱えるように改善
     - 🖼️ 画像保存時にフォーマット(PNG/JPG)を選択可能に
 - **v1.0.0**: 初版リリース。スタンプ、矩形、矢印、画像保存機能を実装。
+
+</details>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { RgbaStringColorPicker } from 'react-colorful';
-import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine, RotateCcw, RotateCw, Palette } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, ArrowUpFromLine, ArrowDownToLine, Minus, Minimize, ScanLine, RotateCcw, RotateCw, Palette, ListOrdered } from 'lucide-react';
 
 import { validateProjectName } from '../utils/validation';
 import Tooltip from './Tooltip';
@@ -288,7 +288,8 @@ const SettingsPanel = ({
   mode,
   onDelete,
   projectName,
-  setProjectName
+  setProjectName,
+  onRenumberStamps
 }) => {
 
   // 選択中のアイテムがあればそれの設定、なければ現在のツールの設定を表示
@@ -519,6 +520,31 @@ const SettingsPanel = ({
               onChange={(e) => handleChange('step', parseInt(e.target.value))}
               style={{ width: '60px' }}
             />
+          </div>
+
+          <div className="settings-row">
+            <Tooltip text="配置した順番（重ね順）に沿って、全スタンプの番号を振り直します">
+              <button
+                onClick={onRenumberStamps}
+                style={{
+                  width: '100%',
+                  padding: '6px 10px',
+                  backgroundColor: '#f0f0f0',
+                  color: '#333',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  fontSize: '12px'
+                }}
+              >
+                <ListOrdered size={16} />
+                連番を振り直す
+              </button>
+            </Tooltip>
           </div>
 
           <div className="settings-row">

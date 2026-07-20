@@ -4,6 +4,7 @@ import Toolbar from './components/Toolbar';
 import SettingsPanel from './components/SettingsPanel';
 import CanvasArea from './components/CanvasArea';
 import ContextMenu from './components/ContextMenu';
+import ItemListPanel from './components/ItemListPanel';
 import ErrorBoundary from './components/ErrorBoundary';
 import useUndoRedo from './hooks/useUndoRedo';
 import { v4 as uuidv4 } from 'uuid';
@@ -60,6 +61,7 @@ function App() {
     pen_style: 'solid',
   });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isItemListOpen, setIsItemListOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [imageSrc, setImageSrc] = useState(null);
   const [imageName, setImageName] = useState(null);
@@ -477,6 +479,37 @@ function App() {
     }
   }, [items]); // itemsが変わるたびにチェック（パフォーマンス注意だが要素数少ないのでOK）
 
+  // スタンプの連番振り直し（配置順に番号を再割り当て）
+  const handleRenumberStamps = () => {
+    const stampCount = items.filter(i => i.type === 'stamp').length;
+    if (stampCount === 0) {
+      alert('スタンプがありません');
+      return;
+    }
+
+    const input = window.prompt(`${stampCount}個のスタンプの番号を配置順に振り直します。\n開始番号を入力してください（増分: ${settings.step || 1}）`, '1');
+    if (input === null) return; // キャンセル
+
+    const start = parseInt(input, 10);
+    if (isNaN(start)) {
+      alert('数値を入力してください');
+      return;
+    }
+
+    const step = settings.step || 1;
+    let n = start;
+    const newItems = items.map(item => {
+      if (item.type !== 'stamp') return item;
+      const renumbered = { ...item, number: n };
+      n += step;
+      return renumbered;
+    });
+
+    setItems(newItems);
+    // 次に追加するスタンプの番号を続きに合わせる
+    setSettings(prev => ({ ...prev, number: n }));
+  };
+
   // 全アイテム削除 (新規/All Clear)
   const handleClearAll = () => {
     if (items.length === 0 && !imageSrc) return;
@@ -524,6 +557,8 @@ function App() {
           redo={redo}
           canUndo={canUndo}
           canRedo={canRedo}
+          isItemListOpen={isItemListOpen}
+          onToggleItemList={() => setIsItemListOpen(!isItemListOpen)}
         />
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -594,6 +629,22 @@ function App() {
           )}
         </div>
 
+        {isItemListOpen && (
+          <ItemListPanel
+            items={items}
+            selectedIds={selectedIds}
+            onSelectItem={(id) => {
+              setMode('select');
+              setSelectedIds([id]);
+            }}
+            onDeleteItem={(id) => {
+              setItems(prev => prev.filter(item => item.id !== id));
+              setSelectedIds(prev => prev.filter(sid => sid !== id));
+            }}
+            onClose={() => setIsItemListOpen(false)}
+          />
+        )}
+
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Tooltip
             text={isSidebarOpen ? "設定パネルを閉じる" : "設定パネルを開く"}
@@ -655,6 +706,7 @@ function App() {
                 onDelete={handleDeleteItem}
                 projectName={projectName}
                 setProjectName={setProjectName}
+                onRenumberStamps={handleRenumberStamps}
               />
 
               {/* Zoom Control Compact */}

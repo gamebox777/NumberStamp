@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MousePointer2, Stamp, Square, Type, Pen, ArrowRight, Download, Image as ImageIcon, FileJson, FolderOpen, Trash2, Undo2, Redo2, ChevronDown } from 'lucide-react';
+import { MousePointer2, Stamp, Square, Type, Pen, ArrowRight, Download, Image as ImageIcon, FileJson, FolderOpen, Trash2, Undo2, Redo2, ChevronDown, List } from 'lucide-react';
 import Tooltip from './Tooltip';
 
-const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadProject, onClearAll, undo, redo, canUndo, canRedo }) => {
+const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadProject, onClearAll, undo, redo, canUndo, canRedo, isItemListOpen, onToggleItemList }) => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = useRef(null);
 
@@ -81,6 +81,15 @@ const Toolbar = ({ mode, setMode, onExport, onLoadImage, onSaveProject, onLoadPr
       </Tooltip>
 
       <div style={{ flex: 0.2, borderBottom: '1px solid #ccc', margin: '5px 0', width: '80%' }}></div>
+
+      <Tooltip text="アイテム一覧 (Item List)" position="right">
+        <div
+          className={`toolbar-button ${isItemListOpen ? 'active' : ''}`}
+          onClick={onToggleItemList}
+        >
+          <List size={24} />
+        </div>
+      </Tooltip>
 
       <Tooltip text="元に戻す (Ctrl+Z)" position="right">
         <div
